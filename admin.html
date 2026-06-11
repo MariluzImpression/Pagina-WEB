@@ -465,7 +465,15 @@
         window.openModal = (type) => {
             document.getElementById(`modal-${type}`).classList.remove('hidden');
             document.getElementById(`form-${type}`).reset();
-            document.getElementById(`${type}-id`).value = '';
+            
+            let hiddenId = `${type}-id`;
+            if (type === 'producto') hiddenId = 'prod-id';
+            if (type === 'promocion') hiddenId = 'promo-id';
+            if (type === 'catalogo') hiddenId = 'cat-id';
+            
+            const idInput = document.getElementById(hiddenId);
+            if (idInput) idInput.value = '';
+            
             document.getElementById(`modal-${type}-title`).innerText = `Agregar ${type.charAt(0).toUpperCase() + type.slice(1)}`;
         };
         
