@@ -296,7 +296,7 @@
     </nav>
 
     <!-- Mobile Menu Drawer -->
-    <div id="mobile-menu" class="fixed inset-0 bg-brand-darker/95 backdrop-blur-xl z-[70] transform translate-x-full transition-transform duration-300 md:hidden flex flex-col justify-center items-center gap-8 text-2xl font-heading font-bold">
+    <div id="mobile-menu" class="fixed inset-0 bg-brand-darker/95 backdrop-blur-xl z-[70] cart-modal md:hidden flex flex-col justify-center items-center gap-8 text-2xl font-heading font-bold">
         <button id="close-mobile-menu" class="absolute top-6 right-6 text-gray-400 hover:text-white">
             <i data-lucide="x" class="w-8 h-8"></i>
         </button>
@@ -695,14 +695,14 @@
 
         if (mobileMenuToggle && mobileMenu && closeMobileMenu) {
             mobileMenuToggle.addEventListener('click', () => {
-                mobileMenu.classList.remove('translate-x-full');
+                mobileMenu.classList.add('open');
             });
             closeMobileMenu.addEventListener('click', () => {
-                mobileMenu.classList.add('translate-x-full');
+                mobileMenu.classList.remove('open');
             });
             mobileLinks.forEach(link => {
                 link.addEventListener('click', () => {
-                    mobileMenu.classList.add('translate-x-full');
+                    mobileMenu.classList.remove('open');
                 });
             });
         }
