@@ -1,0 +1,30 @@
+Zoho - CÓDIGOS DE VERIFICACIÓN DE RESERVA
+
+
+Cuestiones a tener en cuenta
+----------------------------
+# Cada código se puede utilizar una sola vez.
+# No comparta estos códigos con nadie.
+# Si agotó todos sus códigos o los perdió, siempre puede generar un nuevo conjunto de códigos.
+# Siempre que genere un nuevo conjunto de códigos, los códigos antiguos no utilizados dejarán de ser válidos.
+
+
+Códigos generados
+-----------------
+Nombre de usuario: administracion@impressioncolombia.com
+Generated from: United States DC - (https://accounts.zoho.com)
+Generado el: jun 6, 2026 19:02 (GMT -05:00)
+
+
+ 1. 3c4z 3pbt 4yxk
+ 2. ncsr y4nt jou3
+ 3. b7bh uain 1wtr
+ 4. 0tpf r9si k3oe
+ 5. spcs 9663 q39f
+
+
+Enlaces a temas de ayuda
+------------------------
+
+# Cómo recuperar su cuenta usando estos códigos: https://zurl.to/mfa_banner_bvc_rec
+# Cómo generar nuevos códigos: https://zurl.to/mfa_banner_bvc_gen

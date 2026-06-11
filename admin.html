@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IMPRESSION | Panel de Administración</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://cdn.tailwindcss.com">
+    <link rel="preconnect" href="https://unpkg.com">
+    <link rel="preconnect" href="https://www.gstatic.com">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;800&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <!-- Librerías de Firebase COMPAT -->
+    <script defer src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script defer src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script defer src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script defer src="https://www.gstatic.com/firebasejs/10.8.0/firebase-storage-compat.js"></script>
+
+    <style>
+        body { background-color: #050505; color: #ffffff; font-family: 'Inter', sans-serif; }
+        .font-heading { font-family: 'Montserrat', sans-serif; }
+        .glass { background: rgba(25, 25, 25, 0.4); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.05); }
+        .tab-btn.active { border-bottom: 2px solid #FF007F; color: white; }
+    </style>
+</head>
+<body class="antialiased selection:bg-pink-500 selection:text-white h-screen flex flex-col">
+
+    <!-- PANTALLA DE LOGIN -->
+    <div id="login-screen" class="flex-1 flex items-center justify-center p-6 transition-opacity duration-300">
+        <div class="glass p-8 rounded-2xl w-full max-w-md shadow-2xl border border-gray-800">
+            <div class="text-center mb-8">
+                <img src="logo.png" alt="Logo" class="h-12 mx-auto mb-4" onerror="this.src=''; this.alt='IMPRESSION'">
+                <h2 class="text-2xl font-heading font-bold">Acceso Administrativo</h2>
+                <p class="text-gray-400 text-sm">Ingresa tus credenciales para continuar</p>
+            </div>
+            
+            <form id="login-form" class="flex flex-col gap-4">
+                <div>
+                    <label class="text-xs text-gray-400 mb-1 block">Correo Electrónico</label>
+                    <input type="email" id="login-email" class="w-full bg-gray-900 border border-gray-700 rounded-xl px-4 py-3 focus:outline-none focus:border-pink-500 text-white" required>
+                </div>
+                <div>
+                    <label class="text-xs text-gray-400 mb-1 block">Contraseña</label>
+                    <input type="password" id="login-password" class="w-full bg-gray-900 border border-gray-700 rounded-xl px-4 py-3 focus:outline-none focus:border-pink-500 text-white" required>
+                </div>
+                <div id="login-error" class="text-red-500 text-xs hidden text-center">Credenciales incorrectas. Verifica tu correo y contraseña.</div>
+                <button type="submit" id="login-btn" class="w-full bg-pink-600 hover:bg-pink-500 text-white font-bold py-3 rounded-xl transition-colors mt-2 flex justify-center items-center gap-2">
+                    Iniciar Sesión
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- PANTALLA DEL PANEL (Oculta por defecto) -->
+    <div id="dashboard-screen" class="hidden flex-1 flex flex-col">
+        <!-- Header -->
+        <header class="glass border-b border-gray-800 p-4 flex justify-between items-center sticky top-0 z-50">
+            <div class="flex items-center gap-4">
+                <img src="logo.png" alt="Logo" class="h-8" onerror="this.src=''; this.alt='IMPRESSION'">
+                <h1 class="text-xl font-heading font-bold hidden md:block">Panel de Administración</h1>
+            </div>
+            <div class="flex items-center gap-4">
+                <span class="text-sm text-gray-400 font-medium" id="user-email">Cargando...</span>
+                <button id="logout-btn" class="px-4 py-2 bg-gray-800 hover:bg-red-900 text-white rounded-lg text-sm transition-colors flex items-center gap-2">
+                    <i data-lucide="log-out" class="w-4 h-4"></i> Salir
+                </button>
+            </div>
+        </header>
+
+        <!-- Contenido Principal -->
+        <div class="flex-1 container mx-auto p-6 flex flex-col gap-6">
+            
+            <!-- Pestañas de navegación -->
+            <div class="flex gap-6 border-b border-gray-800 overflow-x-auto">
+                <button class="tab-btn active pb-2 text-gray-400 font-semibold hover:text-white transition-colors whitespace-nowrap" data-tab="tab-productos">Productos Destacados</button>
+                <button class="tab-btn pb-2 text-gray-400 font-semibold hover:text-white transition-colors whitespace-nowrap" data-tab="tab-promociones">Promociones</button>
+                <button class="tab-btn pb-2 text-gray-400 font-semibold hover:text-white transition-colors whitespace-nowrap" data-tab="tab-servicios">Servicios</button>
+                <button class="tab-btn pb-2 text-gray-400 font-semibold hover:text-white transition-colors whitespace-nowrap" data-tab="tab-galeria">Galería</button>
+                <button class="tab-btn pb-2 text-gray-400 font-semibold hover:text-white transition-colors whitespace-nowrap" data-tab="tab-catalogo">Catálogo Completo</button>
+            </div>
+
+            <!-- Pestaña: Productos -->
+            <div id="tab-productos" class="tab-content">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold font-heading">Productos Destacados</h2>
+                    <button class="bg-pink-600 hover:bg-pink-500 px-4 py-2 rounded-lg font-bold flex items-center gap-2 text-sm transition-colors" onclick="openModal('producto')">
+                        <i data-lucide="plus" class="w-4 h-4"></i> Agregar Producto
+                    </button>
+                </div>
+                <div id="productos-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div class="col-span-full text-center py-10 text-gray-500">Cargando datos desde Firebase...</div>
+                </div>
+            </div>
+
+            <!-- Pestaña: Promociones -->
+            <div id="tab-promociones" class="tab-content hidden">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold font-heading">Promociones del Mes</h2>
+                    <button class="bg-yellow-500 hover:bg-yellow-400 text-black px-4 py-2 rounded-lg font-bold flex items-center gap-2 text-sm transition-colors" onclick="openModal('promocion')">
+                        <i data-lucide="plus" class="w-4 h-4"></i> Agregar Promoción
+                    </button>
+                </div>
+                <div id="promociones-list" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="col-span-full text-center py-10 text-gray-500">Cargando datos desde Firebase...</div>
+                </div>
+            </div>
+
+            <!-- Pestaña: Servicios -->
+            <div id="tab-servicios" class="tab-content hidden">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold font-heading">Nuestros Servicios</h2>
+                    <button class="bg-blue-500 hover:bg-blue-400 px-4 py-2 rounded-lg font-bold flex items-center gap-2 text-sm transition-colors" onclick="openModal('servicio')">
+                        <i data-lucide="plus" class="w-4 h-4"></i> Agregar Servicio
+                    </button>
+                </div>
+                <div id="servicios-list" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="col-span-full text-center py-10 text-gray-500">Cargando datos desde Firebase...</div>
+                </div>
+            </div>
+
+            <!-- Pestaña: Galería -->
+            <div id="tab-galeria" class="tab-content hidden">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold font-heading">Galería de Trabajos</h2>
+                    <button class="bg-purple-600 hover:bg-purple-500 px-4 py-2 rounded-lg font-bold flex items-center gap-2 text-sm transition-colors" onclick="openModal('galeria')">
+                        <i data-lucide="image-plus" class="w-4 h-4"></i> Subir Foto
+                    </button>
+                </div>
+                <div id="galeria-list" class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div class="col-span-full text-center py-10 text-gray-500">Cargando fotos desde Firebase...</div>
+                </div>
+            </div>
+
+            <!-- Pestaña: Catálogo -->
+            <div id="tab-catalogo" class="tab-content hidden">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold font-heading">Catálogo de Productos y Servicios</h2>
+                    <button class="bg-green-600 hover:bg-green-500 px-4 py-2 rounded-lg font-bold flex items-center gap-2 text-sm transition-colors" onclick="openModal('catalogo')">
+                        <i data-lucide="plus" class="w-4 h-4"></i> Añadir al Catálogo
+                    </button>
+                </div>
+                <div id="catalogo-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div class="col-span-full text-center py-10 text-gray-500">Cargando catálogo desde Firebase...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODALES DE CREACIÓN/EDICIÓN -->
+
+    <!-- Modal Producto -->
+    <div id="modal-producto" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[100] hidden flex items-center justify-center p-4">
+        <div class="bg-gray-900 border border-gray-800 rounded-2xl w-full max-w-lg p-6">
+            <h3 class="text-xl font-bold mb-4 font-heading" id="modal-producto-title">Agregar Producto</h3>
+            <form id="form-producto" class="flex flex-col gap-4">
+                <input type="hidden" id="prod-id">
+                <div>
+                    <label class="text-xs text-gray-400 mb-1 block">Nombre del Producto</label>
+                    <input type="text" id="prod-nombre" placeholder="Ej: Banner Exterior" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white" required>
+                </div>
+                <div>
+                    <label class="text-xs text-gray-400 mb-1 block">Etiqueta / Categoría</label>
+                    <input type="text" id="prod-categoria" placeholder="Ej: Vinilo Adhesivo" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white" required>
+                </div>
+                <div>
+                    <label class="text-xs text-gray-400 mb-1 block">Descripción corta</label>
+                    <textarea id="prod-desc" rows="2" placeholder="Lona de alta resistencia 13oz..." class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white resize-none" required></textarea>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="text-xs text-gray-400 mb-1 block">Precio Venta (COP)</label>
+                        <input type="number" id="prod-precio" placeholder="28000" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white" required>
+                    </div>
+                    <div>
+                        <label class="text-xs text-gray-400 mb-1 block">Precio Anterior (Opcional)</label>
+                        <input type="number" id="prod-precio-old" placeholder="35000" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white">
+                    </div>
+                </div>
+                <div>
+                    <label class="text-xs text-gray-400 mb-1 block">Foto o Video del Producto (Opcional si editas)</label>
+                    <input type="file" id="prod-imagen" accept="image/*,video/mp4,video/quicktime" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white">
+                </div>
+                
+                <div class="mb-2 mt-2">
+                    <label class="text-xs text-gray-400 mb-2 block">¿Dónde quieres publicar esto?</label>
+                    <div class="flex flex-col gap-2">
+                        <label class="flex items-center gap-2 text-sm text-white cursor-pointer"><input type="radio" name="dest-producto" value="ambas" checked class="accent-pink-500"> Página Web y Redes Sociales</label>
+                        <label class="flex items-center gap-2 text-sm text-white cursor-pointer"><input type="radio" name="dest-producto" value="pagina" class="accent-pink-500"> Solo en la Página Web</label>
+                        <label class="flex items-center gap-2 text-sm text-white cursor-pointer"><input type="radio" name="dest-producto" value="redes" class="accent-pink-500"> Solo en Redes (No guardar en web)</label>
+                    </div>
+                </div>
+
+                <div class="mb-2 mt-2">
+                    <label class="text-xs text-gray-400 mb-2 block">Formato en Redes (Aplica para Redes/Ambas)</label>
+                    <div class="flex gap-4">
+                        <label class="flex items-center gap-2 text-sm text-gray-300 cursor-pointer">
+                            <input type="radio" name="formato-producto" value="publicacion" checked class="accent-pink-500"> Publicación Normal
+                        </label>
+                        <label class="flex items-center gap-2 text-sm text-gray-300 cursor-pointer">
+                            <input type="radio" name="formato-producto" value="reel" class="accent-pink-500"> Reel / Video
+                        </label>
+                    </div>
+                </div>
+
+                <div class="flex justify-end gap-2 mt-4">
+                    <button type="button" class="px-4 py-2 rounded-lg text-gray-400 hover:text-white" onclick="closeModal('producto')">Cancelar</button>
+                    <button type="submit" class="px-4 py-2 bg-pink-600 hover:bg-pink-500 text-white font-bold rounded-lg transition-colors flex items-center gap-2" id="btn-save-producto">Guardar Producto</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Promoción -->
+    <div id="modal-promocion" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[100] hidden flex items-center justify-center p-4">
+        <div class="bg-gray-900 border border-gray-800 rounded-2xl w-full max-w-lg p-6">
+            <h3 class="text-xl font-bold mb-4 font-heading" id="modal-promocion-title">Agregar Promoción</h3>
+            <form id="form-promocion" class="flex flex-col gap-4">
+                <input type="hidden" id="promo-id">
+                <div>
+                    <label class="text-xs text-gray-400 mb-1 block">Nombre del Paquete</label>
+                    <input type="text" id="promo-nombre" placeholder="Ej: Paquete Emprendedor" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white" required>
+                </div>
+                <div>
+                    <label class="text-xs text-gray-400 mb-1 block">Etiqueta de Descuento</label>
+                    <input type="text" id="promo-descuento" placeholder="Ej: -20% OFF" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white" required>
+                </div>
+                <div>
+                    <label class="text-xs text-gray-400 mb-1 block">Contenido del paquete</label>
+                    <textarea id="promo-desc" rows="3" placeholder="Diseño de Logo básico + 1000 Tarjetas..." class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white resize-none" required></textarea>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="text-xs text-gray-400 mb-1 block">Precio Promo (COP)</label>
+                        <input type="number" id="promo-precio" placeholder="120000" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white" required>
+                    </div>
+                    <div>
+                        <label class="text-xs text-gray-400 mb-1 block">Precio Normal (Opcional)</label>
+                        <input type="number" id="promo-precio-old" placeholder="150000" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white">
+                    </div>
+                </div>
+                <div>
+                    <label class="text-xs text-gray-400 mb-1 block">Foto o Video de la Promoción (Opcional si editas)</label>
+                    <input type="file" id="promo-imagen" accept="image/*,video/mp4,video/quicktime" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white">
+                </div>
+                
+                <div class="mb-2 mt-2">
+                    <label class="text-xs text-gray-400 mb-2 block">¿Dónde quieres publicar esto?</label>
+                    <div class="flex flex-col gap-2">
+                        <label class="flex items-center gap-2 text-sm text-white cursor-pointer"><input type="radio" name="dest-promocion" value="ambas" checked class="accent-yellow-500"> Página Web y Redes Sociales</label>
+                        <label class="flex items-center gap-2 text-sm text-white cursor-pointer"><input type="radio" name="dest-promocion" value="pagina" class="accent-yellow-500"> Solo en la Página Web</label>
+                        <label class="flex items-center gap-2 text-sm text-white cursor-pointer"><input type="radio" name="dest-promocion" value="redes" class="accent-yellow-500"> Solo en Redes (No guardar en web)</label>
+                    </div>
+                </div>
+
+                <div class="mb-2 mt-2">
+                    <label class="text-xs text-gray-400 mb-2 block">Formato en Redes (Aplica para Redes/Ambas)</label>
+                    <div class="flex gap-4">
+                        <label class="flex items-center gap-2 text-sm text-gray-300 cursor-pointer">
+                            <input type="radio" name="formato-promocion" value="publicacion" checked class="accent-yellow-500"> Publicación Normal
+                        </label>
+                        <label class="flex items-center gap-2 text-sm text-gray-300 cursor-pointer">
+                            <input type="radio" name="formato-promocion" value="reel" class="accent-yellow-500"> Reel / Video
+                        </label>
+                    </div>
+                </div>
+
+                <div class="flex justify-end gap-2 mt-4">
+                    <button type="button" class="px-4 py-2 rounded-lg text-gray-400 hover:text-white" onclick="closeModal('promocion')">Cancelar</button>
+                    <button type="submit" class="px-4 py-2 bg-yellow-500 hover:bg-yellow-400 text-black font-bold rounded-lg transition-colors">Guardar Promoción</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Servicio -->
+    <div id="modal-servicio" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[100] hidden flex items-center justify-center p-4">
+        <div class="bg-gray-900 border border-gray-800 rounded-2xl w-full max-w-lg p-6">
+            <h3 class="text-xl font-bold mb-4 font-heading" id="modal-servicio-title">Agregar Servicio</h3>
+            <form id="form-servicio" class="flex flex-col gap-4">
+                <input type="hidden" id="serv-id">
+                <div>
+                    <label class="text-xs text-gray-400 mb-1 block">Título del Servicio</label>
+                    <input type="text" id="serv-titulo" placeholder="Ej: Impresión de Plotter" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white" required>
+                </div>
+                <div>
+                    <label class="text-xs text-gray-400 mb-1 block">Descripción del Servicio</label>
+                    <textarea id="serv-desc" rows="3" placeholder="Gigantografías, vinilos decorativos..." class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white resize-none" required></textarea>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="text-xs text-gray-400 mb-1 block">Foto o Video del Servicio</label>
+                        <input type="file" id="serv-imagen" accept="image/*,video/mp4,video/quicktime" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white">
+                    </div>
+                    <div>
+                        <label class="text-xs text-gray-400 mb-1 block">Color del tema</label>
+                        <select id="serv-color" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white">
+                            <option value="brand-yellow">Amarillo</option>
+                            <option value="brand-pink">Rosa</option>
+                            <option value="brand-blue">Azul</option>
+                            <option value="brand-orange">Naranja</option>
+                            <option value="brand-purple">Morado</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="mb-2 mt-2">
+                    <label class="text-xs text-gray-400 mb-2 block">¿Dónde quieres publicar esto?</label>
+                    <div class="flex flex-col gap-2">
+                        <label class="flex items-center gap-2 text-sm text-white cursor-pointer"><input type="radio" name="dest-servicio" value="ambas" checked class="accent-blue-500"> Página Web y Redes Sociales</label>
+                        <label class="flex items-center gap-2 text-sm text-white cursor-pointer"><input type="radio" name="dest-servicio" value="pagina" class="accent-blue-500"> Solo en la Página Web</label>
+                        <label class="flex items-center gap-2 text-sm text-white cursor-pointer"><input type="radio" name="dest-servicio" value="redes" class="accent-blue-500"> Solo en Redes (No guardar en web)</label>
+                    </div>
+                </div>
+                
+                <div class="mb-2 mt-2">
+                    <label class="text-xs text-gray-400 mb-2 block">Formato en Redes (Aplica para Redes/Ambas)</label>
+                    <div class="flex gap-4">
+                        <label class="flex items-center gap-2 text-sm text-gray-300 cursor-pointer">
+                            <input type="radio" name="formato-servicio" value="publicacion" checked class="accent-blue-500"> Publicación Normal
+                        </label>
+                        <label class="flex items-center gap-2 text-sm text-gray-300 cursor-pointer">
+                            <input type="radio" name="formato-servicio" value="reel" class="accent-blue-500"> Reel / Video
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="flex justify-end gap-2 mt-4">
+                    <button type="button" class="px-4 py-2 rounded-lg text-gray-400 hover:text-white" onclick="closeModal('servicio')">Cancelar</button>
+                    <button type="submit" class="px-4 py-2 bg-blue-500 hover:bg-blue-400 text-white font-bold rounded-lg transition-colors">Guardar Servicio</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Galería -->
+    <div id="modal-galeria" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[100] hidden flex items-center justify-center p-4">
+        <div class="bg-gray-900 border border-gray-800 rounded-2xl w-full max-w-lg p-6">
+            <h3 class="text-xl font-bold mb-4 font-heading" id="modal-galeria-title">Subir Foto a la Galería</h3>
+            <form id="form-galeria" class="flex flex-col gap-4">
+                <input type="hidden" id="galeria-id">
+                
+                <div>
+                    <label class="text-xs text-gray-400 mb-1 block">Seleccionar Archivo (Imagen o Video Corto)</label>
+                    <input type="file" id="galeria-file" accept="image/*,video/mp4,video/quicktime" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-purple-600 file:text-white hover:file:bg-purple-500 transition-colors" required>
+                    <p class="text-[10px] text-gray-500 mt-1">Las fotos se comprimen automáticamente. Los videos cortos no se comprimen, cuidado con el tamaño.</p>
+                </div>
+
+                <div>
+                    <label class="text-xs text-gray-400 mb-1 block">Título o Descripción breve (Opcional)</label>
+                    <input type="text" id="galeria-titulo" placeholder="Ej: Instalación Vinilo Fachada" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white">
+                </div>
+                
+                <div class="mb-2 mt-2">
+                    <label class="text-xs text-gray-400 mb-2 block">¿Dónde quieres publicar esto?</label>
+                    <div class="flex flex-col gap-2">
+                        <label class="flex items-center gap-2 text-sm text-white cursor-pointer"><input type="radio" name="dest-galeria" value="ambas" checked class="accent-purple-500"> Página Web y Redes Sociales</label>
+                        <label class="flex items-center gap-2 text-sm text-white cursor-pointer"><input type="radio" name="dest-galeria" value="pagina" class="accent-purple-500"> Solo en la Página Web</label>
+                        <label class="flex items-center gap-2 text-sm text-white cursor-pointer"><input type="radio" name="dest-galeria" value="redes" class="accent-purple-500"> Solo en Redes (No guardar en web)</label>
+                    </div>
+                </div>
+
+                <div class="mb-2 mt-2">
+                    <label class="text-xs text-gray-400 mb-2 block">Formato en Redes (Aplica para Redes/Ambas)</label>
+                    <div class="flex gap-4">
+                        <label class="flex items-center gap-2 text-sm text-gray-300 cursor-pointer">
+                            <input type="radio" name="formato-galeria" value="publicacion" checked class="accent-purple-500"> Publicación Normal
+                        </label>
+                        <label class="flex items-center gap-2 text-sm text-gray-300 cursor-pointer">
+                            <input type="radio" name="formato-galeria" value="reel" class="accent-purple-500"> Reel / Video
+                        </label>
+                    </div>
+                </div>
+
+                <div class="flex justify-end gap-2 mt-4">
+                    <button type="button" class="px-4 py-2 rounded-lg text-gray-400 hover:text-white" onclick="closeModal('galeria')">Cancelar</button>
+                    <button type="submit" id="btn-save-galeria" class="px-4 py-2 bg-purple-600 hover:bg-purple-500 text-white font-bold rounded-lg transition-colors flex items-center gap-2">Subir Foto</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Catálogo -->
+    <div id="modal-catalogo" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[100] hidden flex items-center justify-center p-4">
+        <div class="bg-gray-900 border border-gray-800 rounded-2xl w-full max-w-lg p-6 max-h-[90vh] overflow-y-auto">
+            <h3 class="text-xl font-bold mb-4 font-heading" id="modal-catalogo-title">Añadir al Catálogo</h3>
+            <form id="form-catalogo" class="flex flex-col gap-4">
+                <input type="hidden" id="cat-id">
+                <div>
+                    <label class="text-xs text-gray-400 mb-1 block">Nombre del Artículo</label>
+                    <input type="text" id="cat-nombre" placeholder="Ej: Impresión Tarjetas 1000und" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white" required>
+                </div>
+                <div>
+                    <label class="text-xs text-gray-400 mb-1 block">Categoría</label>
+                    <select id="cat-categoria" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white" required>
+                        <option value="Impresión Gran Formato">Impresión Gran Formato</option>
+                        <option value="Papelería Comercial">Papelería Comercial</option>
+                        <option value="Avisos y Señalización">Avisos y Señalización</option>
+                        <option value="Diseño Gráfico">Diseño Gráfico</option>
+                        <option value="Material Promocional">Material Promocional</option>
+                        <option value="Otros">Otros</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="text-xs text-gray-400 mb-1 block">Descripción detallada</label>
+                    <textarea id="cat-desc" rows="3" placeholder="Detalles, materiales, tiempos de entrega..." class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white resize-none" required></textarea>
+                </div>
+                <div>
+                    <label class="text-xs text-gray-400 mb-1 block">Precio Venta (COP)</label>
+                    <input type="number" id="cat-precio" placeholder="45000" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white" required>
+                </div>
+                <div>
+                    <label class="text-xs text-gray-400 mb-1 block">Foto o Video del Artículo</label>
+                    <input type="file" id="cat-imagen" accept="image/*,video/mp4,video/quicktime" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white">
+                </div>
+                
+                <div class="mb-2 mt-2">
+                    <label class="text-xs text-gray-400 mb-2 block">¿Dónde quieres publicar esto?</label>
+                    <div class="flex flex-col gap-2">
+                        <label class="flex items-center gap-2 text-sm text-white cursor-pointer"><input type="radio" name="dest-catalogo" value="ambas" checked class="accent-green-500"> Página Web y Redes Sociales</label>
+                        <label class="flex items-center gap-2 text-sm text-white cursor-pointer"><input type="radio" name="dest-catalogo" value="pagina" class="accent-green-500"> Solo en la Página Web</label>
+                        <label class="flex items-center gap-2 text-sm text-white cursor-pointer"><input type="radio" name="dest-catalogo" value="redes" class="accent-green-500"> Solo en Redes (No guardar en web)</label>
+                    </div>
+                </div>
+
+                <div class="mb-2 mt-2">
+                    <label class="text-xs text-gray-400 mb-2 block">Formato en Redes (Aplica para Redes/Ambas)</label>
+                    <div class="flex gap-4">
+                        <label class="flex items-center gap-2 text-sm text-gray-300 cursor-pointer">
+                            <input type="radio" name="formato-catalogo" value="publicacion" checked class="accent-green-500"> Publicación Normal
+                        </label>
+                        <label class="flex items-center gap-2 text-sm text-gray-300 cursor-pointer">
+                            <input type="radio" name="formato-catalogo" value="reel" class="accent-green-500"> Reel / Video
+                        </label>
+                    </div>
+                </div>
+
+                <div class="flex justify-end gap-2 mt-4">
+                    <button type="button" class="px-4 py-2 rounded-lg text-gray-400 hover:text-white" onclick="closeModal('catalogo')">Cancelar</button>
+                    <button type="submit" id="btn-save-catalogo" class="px-4 py-2 bg-green-600 hover:bg-green-500 text-white font-bold rounded-lg transition-colors flex items-center gap-2">Guardar Artículo</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Scripts de Interfaz -->
+    <script>
+        lucide.createIcons();
+        
+        // Lógica para cambiar de pestañas (Tabs)
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
+                
+                e.target.classList.add('active');
+                document.getElementById(e.target.dataset.tab).classList.remove('hidden');
+            });
+        });
+
+        // Lógica para abrir y cerrar modales
+        window.openModal = (type) => {
+            document.getElementById(`modal-${type}`).classList.remove('hidden');
+            document.getElementById(`form-${type}`).reset();
+            document.getElementById(`${type}-id`).value = '';
+            document.getElementById(`modal-${type}-title`).innerText = `Agregar ${type.charAt(0).toUpperCase() + type.slice(1)}`;
+        };
+        
+        window.closeModal = (type) => {
+            document.getElementById(`modal-${type}`).classList.add('hidden');
+        };
+    </script>
+
+    <!-- Conexión con Firebase y Lógica del Panel -->
+    <script defer src="admin.js?v=2.0"></script>
+</body>
+</html>
