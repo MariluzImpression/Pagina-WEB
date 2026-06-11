@@ -776,7 +776,8 @@ document.getElementById('form-catalogo').addEventListener('submit', async (e) =>
         
         if (destino === 'ambas' || destino === 'redes') {
             const formato = document.querySelector('input[name="formato-catalogo"]:checked').value;
-            const makeData = { ...data, formato_redes: formato };
+            const tituloEnriquecido = `📦 ${data.nombre}\nCategoría: ${data.categoria}\n\n${data.desc}\n\nPrecio: $${data.precio.toLocaleString('es-CO')} COP`;
+            const makeData = { ...data, titulo: tituloEnriquecido, formato_redes: formato };
             delete makeData.timestamp; // Make.com no entiende objetos Firebase ServerTimestamp
             notificarMake("nuevo_catalogo", makeData);
         }
