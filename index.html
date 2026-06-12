@@ -72,7 +72,7 @@
             100% { transform: translateX(-50%); }
         }
         .animate-marquee {
-            animation: marquee 30s linear infinite;
+            animation: marquee 50s linear infinite;
         }
         .animate-marquee:hover {
             animation-play-state: paused;
@@ -1196,8 +1196,8 @@
                         allGal.forEach(data => {
                             const tituloSeguro = escapeHTML(data.titulo);
                             galeriaHTML += `
-                                <div class="w-64 md:w-80 h-48 md:h-64 rounded-2xl overflow-hidden relative group shrink-0 border border-gray-800 hover:border-brand-purple transition-colors">
-                                    ${data.tipo_media === 'video' ? `<video src="${escapeHTML(data.imagen)}" autoplay loop muted playsinline class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"></video>` : `<img src="${escapeHTML(data.imagen)}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" alt="${tituloSeguro}">`}
+                                <div class="w-64 md:w-80 h-48 md:h-64 rounded-2xl overflow-hidden relative group shrink-0 border border-gray-800 hover:border-brand-purple transition-all duration-500 hover:scale-[1.15] hover:z-20 cursor-pointer shadow-lg hover:shadow-[0_0_25px_rgba(138,43,226,0.4)]">
+                                    ${data.tipo_media === 'video' ? `<video src="${escapeHTML(data.imagen)}" autoplay loop muted playsinline class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"></video>` : `<img src="${escapeHTML(data.imagen)}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" alt="${tituloSeguro}">`}
                                     <div class="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-4">
                                         <p class="text-white font-bold text-sm truncate w-full">${tituloSeguro}</p>
                                     </div>
