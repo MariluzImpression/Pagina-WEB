@@ -846,17 +846,3 @@ window.editarCatalogo = async (id) => {
         }
     } catch (error) { alert("Error al obtener datos: " + error.message); }
 };
-
-// --- COMPORTAMIENTO QUIRÚRGICO DE CÁMARA EN MÓVILES ---
-// Detectar si el usuario está en un dispositivo móvil (iOS o Android)
-const isMobileDevice = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-if (isMobileDevice) {
-    // Si es móvil, forzamos a que estos inputs abran directamente la cámara trasera
-    const uploadInputs = ['prod-imagen', 'promo-imagen', 'galeria-file', 'cat-imagen', 'serv-imagen'];
-    uploadInputs.forEach(id => {
-        const input = document.getElementById(id);
-        if (input) {
-            input.setAttribute('capture', 'environment');
-        }
-    });
-}
