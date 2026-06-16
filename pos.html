@@ -14,9 +14,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;800&family=Inter:wght@300;400;500;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
     
-    <!-- Librerías de Firebase COMPAT -->
-    <script defer src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-    <script defer src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <!-- Librerías de Firebase COMPAT (sin defer para asegurar que estén disponibles) -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 
     <style>
         body { background-color: #050505; color: #ffffff; font-family: 'Inter', sans-serif; }
@@ -55,19 +55,19 @@
                 <input type="password" id="pin-display" class="w-full bg-gray-900 border border-gray-700 rounded-xl px-4 py-4 text-center text-3xl tracking-[1em] focus:outline-none focus:border-cyan-500 text-white" readonly>
             </div>
             
-            <div class="grid grid-cols-3 gap-3 mb-6">
-                <button class="numpad-btn py-4" onclick="addPin('1')">1</button>
-                <button class="numpad-btn py-4" onclick="addPin('2')">2</button>
-                <button class="numpad-btn py-4" onclick="addPin('3')">3</button>
-                <button class="numpad-btn py-4" onclick="addPin('4')">4</button>
-                <button class="numpad-btn py-4" onclick="addPin('5')">5</button>
-                <button class="numpad-btn py-4" onclick="addPin('6')">6</button>
-                <button class="numpad-btn py-4" onclick="addPin('7')">7</button>
-                <button class="numpad-btn py-4" onclick="addPin('8')">8</button>
-                <button class="numpad-btn py-4" onclick="addPin('9')">9</button>
-                <button class="numpad-btn py-4 bg-red-900/30 text-red-500 border-red-900/50 hover:bg-red-500 hover:text-white" onclick="clearPin()">C</button>
-                <button class="numpad-btn py-4" onclick="addPin('0')">0</button>
-                <button class="numpad-btn py-4 bg-green-900/30 text-green-500 border-green-900/50 hover:bg-green-500 hover:text-white flex items-center justify-center" id="btn-login-pin" onclick="loginPin()">
+            <div class="grid grid-cols-3 gap-3 mb-6" id="numpad">
+                <button class="numpad-btn py-4" data-num="1">1</button>
+                <button class="numpad-btn py-4" data-num="2">2</button>
+                <button class="numpad-btn py-4" data-num="3">3</button>
+                <button class="numpad-btn py-4" data-num="4">4</button>
+                <button class="numpad-btn py-4" data-num="5">5</button>
+                <button class="numpad-btn py-4" data-num="6">6</button>
+                <button class="numpad-btn py-4" data-num="7">7</button>
+                <button class="numpad-btn py-4" data-num="8">8</button>
+                <button class="numpad-btn py-4" data-num="9">9</button>
+                <button class="numpad-btn py-4 bg-red-900/30 text-red-500 border-red-900/50 hover:bg-red-500 hover:text-white" data-action="clear">C</button>
+                <button class="numpad-btn py-4" data-num="0">0</button>
+                <button class="numpad-btn py-4 bg-green-900/30 text-green-500 border-green-900/50 hover:bg-green-500 hover:text-white flex items-center justify-center" id="btn-login-pin">
                     <i data-lucide="arrow-right" class="w-6 h-6"></i>
                 </button>
             </div>
