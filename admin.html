@@ -81,6 +81,8 @@
                 <button class="tab-btn pb-2 text-gray-400 font-semibold hover:text-white transition-colors whitespace-nowrap" data-tab="tab-servicios">Servicios</button>
                 <button class="tab-btn pb-2 text-gray-400 font-semibold hover:text-white transition-colors whitespace-nowrap" data-tab="tab-galeria">Galería</button>
                 <button class="tab-btn pb-2 text-gray-400 font-semibold hover:text-white transition-colors whitespace-nowrap" data-tab="tab-catalogo">Catálogo Completo</button>
+                <button class="tab-btn pb-2 text-gray-400 font-semibold hover:text-white transition-colors whitespace-nowrap" data-tab="tab-pos-usuarios">Usuarios POS</button>
+                <button class="tab-btn pb-2 text-gray-400 font-semibold hover:text-white transition-colors whitespace-nowrap" data-tab="tab-ventas">Historial de Ventas</button>
             </div>
 
             <!-- Pestaña: Productos -->
@@ -147,6 +149,41 @@
                     <div class="col-span-full text-center py-10 text-gray-500">Cargando catálogo desde Firebase...</div>
                 </div>
             </div>
+
+            <!-- Pestaña: Usuarios POS -->
+            <div id="tab-pos-usuarios" class="tab-content hidden">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold font-heading">Usuarios del POS (Cajeros)</h2>
+                    <button class="bg-cyan-600 hover:bg-cyan-500 px-4 py-2 rounded-lg font-bold flex items-center gap-2 text-sm transition-colors" onclick="openModal('pos-usuario')">
+                        <i data-lucide="user-plus" class="w-4 h-4"></i> Crear Usuario
+                    </button>
+                </div>
+                <div id="pos-usuarios-list" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="col-span-full text-center py-10 text-gray-500">Cargando usuarios desde Firebase...</div>
+                </div>
+            </div>
+
+            <!-- Pestaña: Historial de Ventas -->
+            <div id="tab-ventas" class="tab-content hidden">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold font-heading">Historial de Ventas (POS)</h2>
+                </div>
+                <div class="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
+                    <table class="w-full text-left text-sm text-gray-400">
+                        <thead class="bg-gray-800 text-xs uppercase font-bold text-gray-300">
+                            <tr>
+                                <th class="px-6 py-3">Fecha</th>
+                                <th class="px-6 py-3">Vendedor</th>
+                                <th class="px-6 py-3">Artículos</th>
+                                <th class="px-6 py-3">Total</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ventas-list" class="divide-y divide-gray-800">
+                            <tr><td colspan="4" class="text-center py-10 text-gray-500">Cargando ventas...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -179,6 +216,10 @@
                         <label class="text-xs text-gray-400 mb-1 block">Precio Anterior (Opcional)</label>
                         <input type="number" id="prod-precio-old" placeholder="35000" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white">
                     </div>
+                </div>
+                <div>
+                    <label class="text-xs text-gray-400 mb-1 block">Stock Disponible (Opcional)</label>
+                    <input type="number" id="prod-stock" placeholder="100" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white">
                 </div>
                 <div>
                     <label class="text-xs text-gray-400 mb-1 block">Foto o Video del Producto (Opcional si editas)</label>
@@ -408,9 +449,15 @@
                     <label class="text-xs text-gray-400 mb-1 block">Descripción detallada</label>
                     <textarea id="cat-desc" rows="3" placeholder="Detalles, materiales, tiempos de entrega..." class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white resize-none" required></textarea>
                 </div>
-                <div>
-                    <label class="text-xs text-gray-400 mb-1 block">Precio Venta (COP)</label>
-                    <input type="number" id="cat-precio" placeholder="45000" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white" required>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="text-xs text-gray-400 mb-1 block">Precio Venta (COP)</label>
+                        <input type="number" id="cat-precio" placeholder="45000" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white" required>
+                    </div>
+                    <div>
+                        <label class="text-xs text-gray-400 mb-1 block">Stock Disponible (Opcional)</label>
+                        <input type="number" id="cat-stock" placeholder="100" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white">
+                    </div>
                 </div>
                 <div>
                     <label class="text-xs text-gray-400 mb-1 block">Foto o Video del Artículo</label>
@@ -441,6 +488,28 @@
                 <div class="flex justify-end gap-2 mt-4">
                     <button type="button" class="px-4 py-2 rounded-lg text-gray-400 hover:text-white" onclick="closeModal('catalogo')">Cancelar</button>
                     <button type="submit" id="btn-save-catalogo" class="px-4 py-2 bg-green-600 hover:bg-green-500 text-white font-bold rounded-lg transition-colors flex items-center gap-2">Guardar Artículo</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Usuario POS -->
+    <div id="modal-pos-usuario" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[100] hidden flex items-center justify-center p-4">
+        <div class="bg-gray-900 border border-gray-800 rounded-2xl w-full max-w-sm p-6">
+            <h3 class="text-xl font-bold mb-4 font-heading" id="modal-pos-usuario-title">Crear Usuario POS</h3>
+            <form id="form-pos-usuario" class="flex flex-col gap-4">
+                <input type="hidden" id="pos-user-id">
+                <div>
+                    <label class="text-xs text-gray-400 mb-1 block">Nombre del Vendedor</label>
+                    <input type="text" id="pos-user-nombre" placeholder="Ej: Carlos" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white" required>
+                </div>
+                <div>
+                    <label class="text-xs text-gray-400 mb-1 block">PIN de Acceso (4 a 6 dígitos)</label>
+                    <input type="password" id="pos-user-pin" placeholder="1234" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white" required minlength="4" maxlength="6">
+                </div>
+                <div class="flex justify-end gap-3 mt-4">
+                    <button type="button" class="px-4 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg font-bold transition-colors text-sm" onclick="closeModal('pos-usuario')">Cancelar</button>
+                    <button type="submit" id="btn-save-pos-usuario" class="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 text-white rounded-lg font-bold transition-colors text-sm">Guardar</button>
                 </div>
             </form>
         </div>

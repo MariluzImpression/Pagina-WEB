@@ -63,6 +63,126 @@ const loginError = document.getElementById('login-error');
 const userEmailDisplay = document.getElementById('user-email');
 const logoutBtn = document.getElementById('logout-btn');
 
+// ================= USUARIOS POS =================
+const formPosUsuario = document.getElementById('form-pos-usuario');
+
+// Guardar POS Usuario
+formPosUsuario.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const id = document.getElementById('pos-user-id').value;
+    const btn = document.getElementById('btn-save-pos-usuario');
+    
+    try {
+        btn.innerText = 'Guardando...';
+        btn.disabled = true;
+
+        const data = {
+            nombre: document.getElementById('pos-user-nombre').value,
+            pin: document.getElementById('pos-user-pin').value,
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        };
+
+        if (id) {
+            await db.collection("pos_users").doc(id).update(data);
+        } else {
+            // Verificar si el PIN ya existe
+            const pinCheck = await db.collection("pos_users").where("pin", "==", data.pin).get();
+            if(!pinCheck.empty) {
+                alert("Ese PIN ya está en uso. Por favor, elige otro.");
+                btn.innerText = 'Guardar';
+                btn.disabled = false;
+                return;
+            }
+            await db.collection("pos_users").add(data);
+        }
+        
+        window.closeModal('pos-usuario');
+        cargarPosUsuarios();
+    } catch (error) {
+        console.error("Error al guardar usuario POS:", error);
+        alert("Error al guardar: " + error.message);
+    } finally {
+        btn.innerText = 'Guardar';
+        btn.disabled = false;
+    }
+});
+
+function cargarPosUsuarios() {
+    db.collection("pos_users").orderBy("timestamp", "desc").onSnapshot(snapshot => {
+        const list = document.getElementById('pos-usuarios-list');
+        if (snapshot.empty) {
+            list.innerHTML = '<div class="col-span-full text-center py-10 text-gray-500">Aún no hay cajeros creados.</div>';
+            return;
+        }
+        let html = '';
+        snapshot.forEach(doc => {
+            const d = doc.data();
+            const dataStr = JSON.stringify(d).replace(/"/g, '&quot;');
+            html += `
+                <div class="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden p-4 relative flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-full bg-cyan-900 flex items-center justify-center text-cyan-400">
+                            <i data-lucide="user" class="w-5 h-5"></i>
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-white">${escapeHTML(d.nombre)}</h4>
+                            <p class="text-xs text-gray-500">PIN: ${d.pin}</p>
+                        </div>
+                    </div>
+                    <div class="flex gap-2">
+                        <button onclick="editPosUsuario('${doc.id}', '${dataStr}')" class="w-8 h-8 bg-blue-900 hover:bg-blue-800 text-blue-400 rounded flex items-center justify-center transition-colors"><i data-lucide="edit-2" class="w-4 h-4"></i></button>
+                        <button onclick="eliminarDoc('pos_users', '${doc.id}')" class="w-8 h-8 bg-red-900 hover:bg-red-800 text-red-400 rounded flex items-center justify-center transition-colors"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                    </div>
+                </div>
+            `;
+        });
+        list.innerHTML = html;
+        lucide.createIcons();
+    });
+}
+
+function editPosUsuario(id, dataStr) {
+    const data = JSON.parse(dataStr.replace(/&quot;/g, '"'));
+    document.getElementById('form-pos-usuario').reset();
+    document.getElementById('pos-user-id').value = id;
+    document.getElementById('pos-user-nombre').value = data.nombre;
+    document.getElementById('pos-user-pin').value = data.pin;
+    window.openModal('pos-usuario');
+}
+
+// ================= VENTAS (HISTORIAL) =================
+function cargarVentas() {
+    db.collection("ventas").orderBy("timestamp", "desc").limit(50).onSnapshot(snapshot => {
+        const list = document.getElementById('ventas-list');
+        if (snapshot.empty) {
+            list.innerHTML = '<tr><td colspan="4" class="text-center py-10 text-gray-500">No hay ventas registradas aún.</td></tr>';
+            return;
+        }
+        let html = '';
+        snapshot.forEach(doc => {
+            const v = doc.data();
+            const date = v.timestamp ? v.timestamp.toDate().toLocaleString('es-CO') : 'Reciente';
+            
+            let articulosHtml = '<ul class="list-disc pl-4 text-xs text-gray-400">';
+            v.articulos.forEach(art => {
+                articulosHtml += `<li>${art.cantidad}x ${escapeHTML(art.nombre)} ($${(art.precio * art.cantidad).toLocaleString('es-CO')})</li>`;
+            });
+            articulosHtml += '</ul>';
+
+            html += `
+                <tr class="hover:bg-gray-800 transition-colors">
+                    <td class="px-6 py-4 whitespace-nowrap text-white">${date}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-cyan-400"><i data-lucide="user" class="w-3 h-3 inline mr-1"></i>${escapeHTML(v.vendedor_nombre)}</td>
+                    <td class="px-6 py-4">${articulosHtml}</td>
+                    <td class="px-6 py-4 whitespace-nowrap font-bold text-green-400">$${v.total.toLocaleString('es-CO')}</td>
+                </tr>
+            `;
+        });
+        list.innerHTML = html;
+        lucide.createIcons();
+    });
+}
+
 // --- 1. LÓGICA DE AUTENTICACIÓN (LOGIN) ---
 
 // Escuchar si el usuario está logueado o no
@@ -100,6 +220,8 @@ auth.onAuthStateChanged(async (user) => {
         cargarServicios();
         cargarGaleria();
         cargarCatalogo();
+        cargarPosUsuarios();
+        cargarVentas();
     } else {
         // No está conectado: Mostrar Login
         loginScreen.classList.remove('hidden');
@@ -171,6 +293,7 @@ formProducto.addEventListener('submit', async (e) => {
             desc: document.getElementById('prod-desc').value,
             precio: Number(document.getElementById('prod-precio').value),
             precio_old: Number(document.getElementById('prod-precio-old').value) || null,
+            stock: document.getElementById('prod-stock').value ? Number(document.getElementById('prod-stock').value) : null,
             timestamp: firebase.firestore.FieldValue.serverTimestamp()
         };
 
@@ -242,7 +365,7 @@ async function cargarProductos() {
                 <span class="text-[10px] bg-pink-600/20 text-pink-400 px-2 py-1 rounded">${escapeHTML(p.categoria)}</span>
                 <h3 class="font-bold mt-2 mb-1 truncate">${escapeHTML(p.nombre)}</h3>
                 <p class="text-xs text-gray-500 mb-3 line-clamp-2">${escapeHTML(p.desc)}</p>
-                <div class="font-bold text-lg text-white">$${Number(p.precio).toLocaleString('es-CO')}</div>
+                <div class="font-bold text-lg text-white">$${Number(p.precio).toLocaleString('es-CO')} ${p.stock !== null && p.stock !== undefined ? `<span class="text-xs text-cyan-400">Stock: ${p.stock}</span>` : ''}</div>
             `;
             fragment.appendChild(card);
         });
@@ -265,6 +388,7 @@ window.editarProducto = async (id) => {
             document.getElementById('prod-desc').value = p.desc;
             document.getElementById('prod-precio').value = p.precio;
             document.getElementById('prod-precio-old').value = p.precio_old || '';
+            document.getElementById('prod-stock').value = p.stock !== null && p.stock !== undefined ? p.stock : '';
             document.getElementById('prod-imagen').value = '';
             
             document.getElementById('modal-producto-title').innerText = 'Editar Producto';
@@ -531,7 +655,6 @@ window.editarServicio = async (id) => {
 const formGaleria = document.getElementById('form-galeria');
 
 // Función auxiliar para redimensionar y convertir a Base64
-// Función auxiliar para redimensionar y convertir a Base64
 function resizeImageAndGetBase64(file, maxWidth = 800) {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
@@ -565,10 +688,6 @@ function resizeImageAndGetBase64(file, maxWidth = 800) {
 // Función global para subir multimedia (Cloudinary para videos, ImgBB para fotos)
 async function uploadMedia(file, onProgress) {
     if (file.type.startsWith('video/')) {
-        if (CLOUDINARY_CLOUD_NAME === "TU_CLOUD_NAME_AQUI" || CLOUDINARY_UPLOAD_PRESET === "TU_UPLOAD_PRESET_AQUI") {
-            throw new Error("Falta configurar Cloudinary. Abre admin.js y coloca tu Cloud Name y Upload Preset en las líneas 33 y 34.");
-        }
-
         return new Promise((resolve, reject) => {
             const xhr = new XMLHttpRequest();
             const url = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/video/upload`;
@@ -585,11 +704,9 @@ async function uploadMedia(file, onProgress) {
             xhr.onload = () => {
                 if (xhr.status === 200) {
                     const response = JSON.parse(xhr.responseText);
-                    // Cloudinary devuelve secure_url con el enlace HTTPS directo al video
                     resolve({ url: response.secure_url, tipo_media: 'video' });
                 } else {
-                    console.error("Cloudinary error:", xhr.responseText);
-                    reject(new Error(`Error de Cloudinary (${xhr.status}): Revisa tu Upload Preset o Cloud Name.`));
+                    reject(new Error(`Error de Cloudinary (${xhr.status})`));
                 }
             };
             
@@ -663,7 +780,7 @@ formGaleria.addEventListener('submit', async (e) => {
         if (destino === 'ambas' || destino === 'redes') {
             const formato = document.querySelector('input[name="formato-galeria"]:checked').value;
             const makeData = { ...data, formato_redes: formato };
-            delete makeData.timestamp; // Make.com no entiende objetos Firebase ServerTimestamp
+            delete makeData.timestamp; 
             notificarMake("nueva_galeria", makeData);
         }
         
@@ -718,6 +835,7 @@ window.eliminarDoc = async (coleccion, id) => {
             if(coleccion === 'servicios') cargarServicios();
             if(coleccion === 'galeria') cargarGaleria();
             if(coleccion === 'catalogo') cargarCatalogo();
+            if(coleccion === 'pos_users') cargarPosUsuarios();
         } catch(error) {
             alert("Error al eliminar: " + error.message);
         }
@@ -734,6 +852,7 @@ document.getElementById('form-catalogo').addEventListener('submit', async (e) =>
         const categoria = document.getElementById('cat-categoria').value;
         const desc = document.getElementById('cat-desc').value;
         const precio = parseFloat(document.getElementById('cat-precio').value) || 0;
+        const stock = document.getElementById('cat-stock').value ? Number(document.getElementById('cat-stock').value) : null;
         const fileInput = document.getElementById('cat-imagen');
         
         const btn = document.getElementById('btn-save-catalogo');
@@ -756,6 +875,7 @@ document.getElementById('form-catalogo').addEventListener('submit', async (e) =>
             categoria,
             desc,
             precio,
+            stock,
             timestamp: firebase.firestore.FieldValue.serverTimestamp()
         };
         
@@ -778,7 +898,7 @@ document.getElementById('form-catalogo').addEventListener('submit', async (e) =>
             const formato = document.querySelector('input[name="formato-catalogo"]:checked').value;
             const tituloEnriquecido = `📦 ${data.nombre}\nCategoría: ${data.categoria}\n\n${data.desc}\n\nPrecio: $${data.precio.toLocaleString('es-CO')} COP`;
             const makeData = { ...data, titulo: tituloEnriquecido, formato_redes: formato };
-            delete makeData.timestamp; // Make.com no entiende objetos Firebase ServerTimestamp
+            delete makeData.timestamp; 
             notificarMake("nuevo_catalogo", makeData);
         }
 
@@ -804,19 +924,19 @@ async function cargarCatalogo() {
 
         const fragment = document.createDocumentFragment();
         querySnapshot.forEach((docSnap) => {
-            const p = docSnap.data();
+            const d = docSnap.data();
             const id = docSnap.id;
             
             const card = document.createElement('div');
             card.className = "bg-gray-900 border border-gray-800 rounded-xl overflow-hidden relative group";
             card.innerHTML = `
                 <div class="aspect-square relative overflow-hidden bg-gray-800">
-                    ${p.tipo_media === 'video' ? `<video src="${escapeHTML(p.imagen)}" autoplay loop muted playsinline class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"></video>` : (p.imagen ? `<img src="${p.imagen}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" alt="${escapeHTML(p.nombre)}">` : '<div class="w-full h-full flex items-center justify-center text-gray-500"><i data-lucide="image" class="w-10 h-10"></i></div>')}
+                    ${d.tipo_media === 'video' ? `<video src="${escapeHTML(d.imagen)}" autoplay loop muted playsinline class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"></video>` : (d.imagen ? `<img src="${d.imagen}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" alt="${escapeHTML(d.nombre)}">` : '<div class="w-full h-full flex items-center justify-center text-gray-500"><i data-lucide="image" class="w-10 h-10"></i></div>')}
                 </div>
                 <div class="p-4">
-                    <span class="text-xs text-green-500 font-bold uppercase tracking-wider mb-1 block">${escapeHTML(p.categoria || '')}</span>
-                    <h4 class="text-white font-bold truncate">${escapeHTML(p.nombre)}</h4>
-                    <p class="text-green-400 font-bold mt-2">$${p.precio ? p.precio.toLocaleString() : '0'}</p>
+                    <span class="text-xs text-green-500 font-bold uppercase tracking-wider mb-1 block">${escapeHTML(d.categoria || '')}</span>
+                    <h4 class="text-white font-bold truncate">${escapeHTML(d.nombre)}</h4>
+                    <p class="text-green-400 font-bold mt-2">$${d.precio ? d.precio.toLocaleString() : '0'} ${d.stock !== null && d.stock !== undefined ? `<span class="ml-2 text-xs text-cyan-400">Stock: ${d.stock}</span>` : ''}</p>
                     <div class="flex gap-2 mt-4 opacity-0 group-hover:opacity-100 transition-opacity">
                         <button onclick="editarCatalogo('${id}')" class="flex-1 bg-gray-700 hover:bg-gray-600 text-white py-1 rounded text-sm transition-colors flex justify-center items-center gap-1"><i data-lucide="edit" class="w-3 h-3"></i> Editar</button>
                         <button onclick="eliminarDoc('catalogo', '${id}')" class="bg-red-600 hover:bg-red-500 text-white px-3 py-1 rounded transition-colors"><i data-lucide="trash-2" class="w-3 h-3"></i></button>
@@ -837,9 +957,10 @@ window.editarCatalogo = async (id) => {
             const data = docSnap.data();
             document.getElementById('cat-id').value = id;
             document.getElementById('cat-nombre').value = data.nombre;
-            document.getElementById('cat-categoria').value = data.categoria || 'Otros';
-            document.getElementById('cat-desc').value = data.desc;
-            document.getElementById('cat-precio').value = data.precio;
+            document.getElementById('cat-categoria').value = data.categoria || '';
+            document.getElementById('cat-desc').value = data.desc || '';
+            document.getElementById('cat-precio').value = data.precio || '';
+            document.getElementById('cat-stock').value = data.stock !== null && data.stock !== undefined ? data.stock : '';
             
             document.getElementById('modal-catalogo-title').innerText = 'Editar Artículo';
             document.getElementById('modal-catalogo').classList.remove('hidden');
