@@ -14,8 +14,16 @@ const firebaseConfig = {
 };
 
 // Inicializar Firebase inmediatamente (los scripts ya cargaron antes que este archivo)
-firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
+let db;
+try {
+    if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+    }
+    db = firebase.firestore();
+} catch (e) {
+    console.error("Error inicializando Firebase en POS:", e);
+    alert("Error de conexión con la base de datos. Recarga la página.");
+}
 
 // --- Mensajes motivacionales (cambian automáticamente cada semana) ---
 const MENSAJES_MOTIVADORES = [
@@ -533,63 +541,67 @@ function printReceipt() {
 // 7. INICIALIZACIÓN — Solo cuando el DOM esté listo
 // ============================================================
 document.addEventListener('DOMContentLoaded', () => {
-    if (typeof lucide !== 'undefined') lucide.createIcons();
+    try {
+        if (typeof lucide !== 'undefined') lucide.createIcons();
 
-    // Dibujar los puntos del PIN vacíos al inicio
-    updatePinDisplay();
+        // Dibujar los puntos del PIN vacíos al inicio
+        updatePinDisplay();
 
-    // ── Numpad: event delegation en el contenedor ──
-    const numpad = getEl('numpad');
-    if (numpad) {
-        numpad.addEventListener('click', (e) => {
-            const btn = e.target.closest('[data-num], [data-action]');
-            if (!btn) return;
-            if ('num' in btn.dataset) addPin(btn.dataset.num);
-            else if (btn.dataset.action === 'clear') clearPin();
-            else if (btn.dataset.action === 'backspace') removeLastPin();
-            else if (btn.dataset.action === 'login') loginPin();
+        // ── Numpad: event delegation en el contenedor ──
+        const numpad = getEl('numpad');
+        if (numpad) {
+            numpad.addEventListener('click', (e) => {
+                const btn = e.target.closest('[data-num], [data-action]');
+                if (!btn) return;
+                if ('num' in btn.dataset) addPin(btn.dataset.num);
+                else if (btn.dataset.action === 'clear') clearPin();
+                else if (btn.dataset.action === 'backspace') removeLastPin();
+                else if (btn.dataset.action === 'login') loginPin();
+            });
+        }
+
+        // ── Teclado físico (para tablets con teclado externo) ──
+        document.addEventListener('keydown', (e) => {
+            const loginScreenVisible = !getEl('login-screen')?.classList.contains('hidden');
+            if (!loginScreenVisible) return;
+            if (e.key >= '0' && e.key <= '9') { e.preventDefault(); addPin(e.key); }
+            else if (e.key === 'Backspace') { e.preventDefault(); removeLastPin(); }
+            else if (e.key === 'Escape') { e.preventDefault(); clearPin(); }
+            else if (e.key === 'Enter') { e.preventDefault(); loginPin(); }
         });
-    }
 
-    // ── Teclado físico (para tablets con teclado externo) ──
-    document.addEventListener('keydown', (e) => {
-        const loginScreenVisible = !getEl('login-screen')?.classList.contains('hidden');
-        if (!loginScreenVisible) return;
-        if (e.key >= '0' && e.key <= '9') { e.preventDefault(); addPin(e.key); }
-        else if (e.key === 'Backspace') { e.preventDefault(); removeLastPin(); }
-        else if (e.key === 'Escape') { e.preventDefault(); clearPin(); }
-        else if (e.key === 'Enter') { e.preventDefault(); loginPin(); }
-    });
+        // ── Búsqueda de productos con debounce ──
+        const searchInput = getEl('search-input');
+        if (searchInput) {
+            searchInput.addEventListener('input', (e) => {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(() => {
+                    const term = e.target.value.trim().toLowerCase();
+                    if (!term) { renderGrid(allInventory); return; }
+                    const filtered = allInventory.filter(item =>
+                        (item.nombre || '').toLowerCase().includes(term) ||
+                        (item.categoria || '').toLowerCase().includes(term) ||
+                        (item.desc || '').toLowerCase().includes(term)
+                    );
+                    renderGrid(filtered);
+                }, 250);
+            });
+        }
 
-    // ── Búsqueda de productos con debounce ──
-    const searchInput = getEl('search-input');
-    if (searchInput) {
-        searchInput.addEventListener('input', (e) => {
-            clearTimeout(searchTimeout);
-            searchTimeout = setTimeout(() => {
-                const term = e.target.value.trim().toLowerCase();
-                if (!term) { renderGrid(allInventory); return; }
-                const filtered = allInventory.filter(item =>
-                    (item.nombre || '').toLowerCase().includes(term) ||
-                    (item.categoria || '').toLowerCase().includes(term) ||
-                    (item.desc || '').toLowerCase().includes(term)
-                );
-                renderGrid(filtered);
-            }, 250);
-        });
-    }
-
-    // ── Formulario de artículo manual ──
-    const formCustom = getEl('form-custom-item');
-    if (formCustom) {
-        formCustom.addEventListener('submit', (e) => {
-            e.preventDefault();
-            const desc = getEl('custom-desc').value.trim();
-            const price = Math.abs(Number(getEl('custom-price').value));
-            if (!desc || price <= 0) return;
-            cart.push({ id: `manual_${Date.now()}`, collection: 'manual', nombre: desc, precio: price, qty: 1 });
-            renderCartUI();
-            closeCustomModal();
-        });
+        // ── Formulario de artículo manual ──
+        const formCustom = getEl('form-custom-item');
+        if (formCustom) {
+            formCustom.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const desc = getEl('custom-desc').value.trim();
+                const price = Math.abs(Number(getEl('custom-price').value));
+                if (!desc || price <= 0) return;
+                cart.push({ id: `manual_${Date.now()}`, collection: 'manual', nombre: desc, precio: price, qty: 1 });
+                renderCartUI();
+                closeCustomModal();
+            });
+        }
+    } catch (err) {
+        console.error("Error en inicialización del POS:", err);
     }
 });
