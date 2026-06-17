@@ -62,13 +62,13 @@ function fmt(num) {
 }
 
 // --- Variables Globales ---
-let currentPin = "";
 let loggedUser = null;
 let allInventory = [];
 let cart = [];
 let lastSale = null;
 let searchTimeout = null;
 let isLoginInProgress = false;
+let currentTab = 'todos';
 
 // Protección contra fuerza bruta
 let pinFailures = 0;
@@ -81,51 +81,12 @@ const getEl = (id) => document.getElementById(id);
 // ============================================================
 // 1. LÓGICA DE LOGIN CON PIN
 // ============================================================
-function addPin(digit) {
-    // Verificar bloqueo temporal
-    if (Date.now() < pinLockUntil) {
-        const secsLeft = Math.ceil((pinLockUntil - Date.now()) / 1000);
-        showLoginError(`Bloqueado. Espera ${secsLeft}s.`);
-        return;
-    }
-
-    // No aceptar más dígitos si ya hay 6 o si está procesando
-    if (currentPin.length >= 6 || isLoginInProgress) return;
-
-    currentPin += String(digit);
-    updatePinDisplay();
-
-    // Auto-login al llegar a 6 dígitos
-    if (currentPin.length === 6) {
-        setTimeout(() => loginPin(), 200); // Pequeña pausa para que se vea el último punto
-    }
-}
-
-function removeLastPin() {
-    currentPin = currentPin.slice(0, -1);
-    updatePinDisplay();
-}
-
-function clearPin() {
-    currentPin = "";
-    updatePinDisplay();
-    const errEl = getEl('login-error');
-    if (errEl) errEl.classList.add('hidden');
-}
-
-function updatePinDisplay() {
-    const display = getEl('pin-display');
-    if (display) {
-        display.value = '•'.repeat(currentPin.length);
-    }
-}
-
 function showLoginError(msg) {
     const el = getEl('login-error');
     if (!el) return;
     el.innerText = msg;
     el.classList.remove('hidden');
-    // Vibrar el panel de entrada (animación de error)
+    // Animación de error
     const panel = getEl('pin-panel');
     if (panel) {
         panel.classList.add('shake-error');
@@ -133,9 +94,14 @@ function showLoginError(msg) {
     }
 }
 
-async function loginPin() {
+async function loginPin(e) {
+    if (e) e.preventDefault();
     if (isLoginInProgress) return;
-    if (currentPin.length < 4) {
+    
+    const pinInput = getEl('pin-display');
+    const enteredPin = pinInput ? pinInput.value.trim() : "";
+
+    if (enteredPin.length < 4) {
         showLoginError("El PIN debe tener mínimo 4 dígitos.");
         return;
     }
@@ -153,7 +119,7 @@ async function loginPin() {
 
     try {
         const snapshot = await db.collection("pos_users")
-            .where("pin", "==", currentPin)
+            .where("pin", "==", enteredPin)
             .limit(1)
             .get();
 
@@ -166,7 +132,7 @@ async function loginPin() {
             } else {
                 showLoginError(`PIN incorrecto. (${pinFailures}/${MAX_PIN_FAILURES})`);
             }
-            clearPin();
+            if (pinInput) pinInput.value = "";
         } else {
             // ✅ Login exitoso
             pinFailures = 0;
@@ -178,7 +144,7 @@ async function loginPin() {
     } catch (error) {
         console.error("Error al verificar PIN:", error);
         showLoginError("Error de conexión. Verifica el internet.");
-        clearPin();
+        if (pinInput) pinInput.value = "";
     } finally {
         isLoginInProgress = false;
         if (loginBtn) {
@@ -227,7 +193,8 @@ function logoutPos() {
     renderCartUI();
     getEl('login-screen').classList.remove('hidden');
     getEl('pos-screen').classList.add('hidden');
-    clearPin();
+    const pinInput = getEl('pin-display');
+    if (pinInput) pinInput.value = "";
 }
 
 // ============================================================
@@ -256,11 +223,48 @@ async function cargarInventario() {
         });
 
         allInventory.sort((a, b) => (a.nombre || '').localeCompare(b.nombre || '', 'es'));
-        renderGrid(allInventory);
+        filterAndRenderGrid();
     } catch (error) {
         console.error("Error cargando inventario:", error);
         productsGrid().innerHTML = '<div class="col-span-full text-center text-red-500 py-20">Error al cargar inventario.</div>';
     }
+}
+
+function filterAndRenderGrid() {
+    const term = (getEl('search-input')?.value || '').trim().toLowerCase();
+    
+    // Categorías relajadas por sinónimos
+    const mapConsumibles = ['consumible', 'consumibles', 'bebida', 'bebidas', 'snack', 'snacks', 'paquete', 'paquetes', 'comida', 'dulce', 'dulces'];
+    const mapOficina = ['oficina', 'papeleria', 'papelería', 'artículo', 'articulo', 'cuaderno', 'lapiz', 'esfero', 'útil', 'utiles', 'útiles'];
+    const mapServicios = ['servicio', 'servicios', 'impresion', 'impresión', 'impresiones', 'plotter', 'copia', 'copias', 'internet', 'cyber'];
+
+    const isMatch = (catString, synonyms) => {
+        if (!catString) return false;
+        const str = catString.toLowerCase();
+        return synonyms.some(syn => str.includes(syn));
+    };
+
+    let filtered = allInventory;
+
+    // Filtro por Tab
+    if (currentTab === 'consumibles') {
+        filtered = filtered.filter(i => isMatch(i.categoria, mapConsumibles));
+    } else if (currentTab === 'oficina') {
+        filtered = filtered.filter(i => isMatch(i.categoria, mapOficina));
+    } else if (currentTab === 'servicios') {
+        filtered = filtered.filter(i => isMatch(i.categoria, mapServicios));
+    }
+
+    // Filtro por Búsqueda de Texto
+    if (term) {
+        filtered = filtered.filter(item =>
+            (item.nombre || '').toLowerCase().includes(term) ||
+            (item.categoria || '').toLowerCase().includes(term) ||
+            (item.desc || '').toLowerCase().includes(term)
+        );
+    }
+
+    renderGrid(filtered);
 }
 
 function productsGrid() { return getEl('products-grid'); }
@@ -459,11 +463,14 @@ async function processCheckout() {
 
     try {
         const batch = db.batch();
+        const paymentSelector = getEl('payment-method');
+        const metodo_pago = paymentSelector ? paymentSelector.value : 'Efectivo';
 
         const ventaRef = db.collection("ventas").doc();
         batch.set(ventaRef, {
             vendedor_nombre: loggedUser.nombre,
             total,
+            metodo_pago: metodo_pago,
             articulos: articulosGuardar,
             timestamp: firebase.firestore.FieldValue.serverTimestamp()
         });
@@ -480,10 +487,10 @@ async function processCheckout() {
 
         await batch.commit();
 
-        lastSale = { id: ventaRef.id, fecha: new Date(), vendedor: loggedUser.nombre, articulos: articulosGuardar, total };
+        lastSale = { id: ventaRef.id, fecha: new Date(), vendedor: loggedUser.nombre, articulos: articulosGuardar, total, metodo_pago };
 
         const msg = getEl('receipt-total-msg');
-        if (msg) msg.innerText = `Total cobrado: $${fmt(total)} COP`;
+        if (msg) msg.innerText = `Total cobrado: $${fmt(total)} COP en ${metodo_pago}`;
         getEl('modal-receipt').classList.remove('hidden');
 
         cart = [];
@@ -535,30 +542,28 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
         if (typeof lucide !== 'undefined') lucide.createIcons();
 
-        // Dibujar los puntos del PIN vacíos al inicio
-        updatePinDisplay();
-
-        // ── Numpad: event delegation en el contenedor ──
-        const numpad = getEl('numpad');
-        if (numpad) {
-            numpad.addEventListener('click', (e) => {
-                const btn = e.target.closest('[data-num], [data-action]');
-                if (!btn) return;
-                if ('num' in btn.dataset) addPin(btn.dataset.num);
-                else if (btn.dataset.action === 'clear') clearPin();
-                else if (btn.dataset.action === 'backspace') removeLastPin();
-                else if (btn.dataset.action === 'login') loginPin();
-            });
+        // ── Formulario Login ──
+        const loginForm = getEl('login-form-pin');
+        if (loginForm) {
+            loginForm.addEventListener('submit', loginPin);
         }
 
-        // ── Teclado físico (para tablets con teclado externo) ──
-        document.addEventListener('keydown', (e) => {
-            const loginScreenVisible = !getEl('login-screen')?.classList.contains('hidden');
-            if (!loginScreenVisible) return;
-            if (e.key >= '0' && e.key <= '9') { e.preventDefault(); addPin(e.key); }
-            else if (e.key === 'Backspace') { e.preventDefault(); removeLastPin(); }
-            else if (e.key === 'Escape') { e.preventDefault(); clearPin(); }
-            else if (e.key === 'Enter') { e.preventDefault(); loginPin(); }
+        // ── Pestañas (Tabs) ──
+        const tabBtns = document.querySelectorAll('.tab-btn');
+        tabBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                // Actualizar estilos
+                tabBtns.forEach(t => {
+                    t.classList.remove('bg-cyan-600', 'text-white');
+                    t.classList.add('bg-gray-800', 'text-gray-400');
+                });
+                btn.classList.remove('bg-gray-800', 'text-gray-400');
+                btn.classList.add('bg-cyan-600', 'text-white');
+                
+                // Actualizar estado y renderizar
+                currentTab = btn.dataset.tab;
+                filterAndRenderGrid();
+            });
         });
 
         // ── Búsqueda de productos con debounce ──
@@ -567,14 +572,7 @@ document.addEventListener('DOMContentLoaded', () => {
             searchInput.addEventListener('input', (e) => {
                 clearTimeout(searchTimeout);
                 searchTimeout = setTimeout(() => {
-                    const term = e.target.value.trim().toLowerCase();
-                    if (!term) { renderGrid(allInventory); return; }
-                    const filtered = allInventory.filter(item =>
-                        (item.nombre || '').toLowerCase().includes(term) ||
-                        (item.categoria || '').toLowerCase().includes(term) ||
-                        (item.desc || '').toLowerCase().includes(term)
-                    );
-                    renderGrid(filtered);
+                    filterAndRenderGrid();
                 }, 250);
             });
         }

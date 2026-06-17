@@ -83,33 +83,17 @@
 
         <!-- Panel PIN -->
         <div id="pin-panel" class="bg-[#0a0a0a] border border-gray-900 rounded-2xl p-6">
-
-            <!-- Display del PIN (Estilo antiguo preferido) -->
-            <div class="mb-6">
-                <input id="pin-display" type="password" class="w-full bg-[#0f172a] border border-[#1e293b] rounded-xl px-4 py-6 text-center text-3xl tracking-[0.5em] focus:outline-none text-white shadow-inner" readonly aria-label="PIN ingresado">
-            </div>
-
-            <!-- Error -->
-            <div id="login-error" class="hidden text-red-400 text-sm text-center mb-4 font-semibold bg-red-900/20 px-3 py-2 rounded-lg"></div>
-
-            <!-- Numpad -->
-            <div id="numpad" class="grid grid-cols-3 gap-4">
-                <button class="numpad-btn py-5 rounded-xl bg-[#1a1a1a] border-transparent hover:bg-[#2a2a2a]" data-num="1">1</button>
-                <button class="numpad-btn py-5 rounded-xl bg-[#1a1a1a] border-transparent hover:bg-[#2a2a2a]" data-num="2">2</button>
-                <button class="numpad-btn py-5 rounded-xl bg-[#1a1a1a] border-transparent hover:bg-[#2a2a2a]" data-num="3">3</button>
-                <button class="numpad-btn py-5 rounded-xl bg-[#1a1a1a] border-transparent hover:bg-[#2a2a2a]" data-num="4">4</button>
-                <button class="numpad-btn py-5 rounded-xl bg-[#1a1a1a] border-transparent hover:bg-[#2a2a2a]" data-num="5">5</button>
-                <button class="numpad-btn py-5 rounded-xl bg-[#1a1a1a] border-transparent hover:bg-[#2a2a2a]" data-num="6">6</button>
-                <button class="numpad-btn py-5 rounded-xl bg-[#1a1a1a] border-transparent hover:bg-[#2a2a2a]" data-num="7">7</button>
-                <button class="numpad-btn py-5 rounded-xl bg-transparent border-white text-white hover:bg-white hover:text-black" data-num="8">8</button>
-                <button class="numpad-btn py-5 rounded-xl bg-[#1a1a1a] border-transparent hover:bg-[#2a2a2a]" data-num="9">9</button>
-                <!-- Fila inferior -->
-                <button class="numpad-btn py-5 rounded-xl bg-[#3f1616] text-[#ef4444] border-transparent hover:bg-red-600 hover:text-white font-bold" data-action="clear">C</button>
-                <button class="numpad-btn py-5 rounded-xl bg-[#1a1a1a] border-transparent hover:bg-[#2a2a2a]" data-num="0">0</button>
-                <button id="btn-login-pin" class="numpad-btn py-5 rounded-xl bg-[#064e3b] text-[#34d399] border-transparent hover:bg-green-600 hover:text-white flex items-center justify-center font-bold" data-action="login">
-                    <i data-lucide="arrow-right" class="w-6 h-6 pointer-events-none"></i>
+            <form id="login-form-pin" class="flex flex-col gap-4">
+                <div>
+                    <input id="pin-display" type="password" placeholder="••••••" class="w-full bg-[#0f172a] border border-[#1e293b] rounded-xl px-4 py-6 text-center text-3xl tracking-[0.5em] focus:outline-none focus:border-cyan-500 text-white shadow-inner transition-colors" aria-label="PIN ingresado" required autofocus autocomplete="off">
+                </div>
+                <!-- Error -->
+                <div id="login-error" class="hidden text-red-400 text-sm text-center font-semibold bg-red-900/20 px-3 py-2 rounded-lg"></div>
+                <button type="submit" id="btn-login-pin" class="w-full py-4 rounded-xl bg-[#064e3b] text-[#34d399] border-transparent hover:bg-green-600 hover:text-white flex items-center justify-center font-bold transition-colors">
+                    <span class="mr-2">Ingresar</span>
+                    <i data-lucide="arrow-right" class="w-5 h-5 pointer-events-none"></i>
                 </button>
-            </div>
+            </form>
         </div>
     </div>
 </div>
@@ -139,16 +123,27 @@
     <!-- ── Izquierda: Catálogo ── -->
     <div class="flex-1 flex flex-col bg-[#050505] border-r border-gray-800 overflow-hidden">
 
-        <!-- Barra superior -->
-        <div class="p-3 border-b border-gray-800 bg-gray-900 flex gap-3 items-center">
-            <div class="relative flex-1">
-                <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500"></i>
-                <input id="search-input" type="text" placeholder="Buscar producto..." class="w-full bg-gray-800 border border-gray-700 rounded-xl pl-9 pr-4 py-2.5 text-sm focus:outline-none focus:border-cyan-500 text-white">
+        <!-- Barra superior y Pestañas -->
+        <div class="flex flex-col bg-gray-900 border-b border-gray-800">
+            <!-- Buscador y Botón -->
+            <div class="p-3 flex gap-3 items-center">
+                <div class="relative flex-1">
+                    <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500"></i>
+                    <input id="search-input" type="text" placeholder="Buscar producto..." class="w-full bg-gray-800 border border-gray-700 rounded-xl pl-9 pr-4 py-2.5 text-sm focus:outline-none focus:border-cyan-500 text-white">
+                </div>
+                <button onclick="openCustomItemModal()" class="bg-purple-600 hover:bg-purple-500 text-white font-bold py-2.5 px-3 rounded-xl flex items-center gap-2 transition-colors whitespace-nowrap text-sm cursor-pointer">
+                    <i data-lucide="plus" class="w-4 h-4"></i>
+                    <span class="hidden md:inline">Artículo Manual</span>
+                </button>
             </div>
-            <button onclick="openCustomItemModal()" class="bg-purple-600 hover:bg-purple-500 text-white font-bold py-2.5 px-3 rounded-xl flex items-center gap-2 transition-colors whitespace-nowrap text-sm">
-                <i data-lucide="plus" class="w-4 h-4"></i>
-                <span class="hidden md:inline">Artículo Manual</span>
-            </button>
+            
+            <!-- Pestañas (Tabs) -->
+            <div class="flex px-3 gap-2 overflow-x-auto no-scrollbar border-t border-gray-800/50 pt-2 pb-2" id="category-tabs">
+                <button class="tab-btn px-4 py-2 rounded-lg text-sm font-bold bg-cyan-600 text-white transition-colors whitespace-nowrap cursor-pointer" data-tab="todos">Todos</button>
+                <button class="tab-btn px-4 py-2 rounded-lg text-sm font-bold bg-gray-800 text-gray-400 hover:bg-gray-700 hover:text-white transition-colors whitespace-nowrap cursor-pointer" data-tab="consumibles">Consumibles</button>
+                <button class="tab-btn px-4 py-2 rounded-lg text-sm font-bold bg-gray-800 text-gray-400 hover:bg-gray-700 hover:text-white transition-colors whitespace-nowrap cursor-pointer" data-tab="oficina">Art. de Oficina</button>
+                <button class="tab-btn px-4 py-2 rounded-lg text-sm font-bold bg-gray-800 text-gray-400 hover:bg-gray-700 hover:text-white transition-colors whitespace-nowrap cursor-pointer" data-tab="servicios">Servicios</button>
+            </div>
         </div>
 
         <!-- Grid de productos -->
@@ -187,17 +182,30 @@
         </div>
 
         <!-- Totales y botón cobrar -->
-        <div class="p-4 border-t border-gray-800">
-            <div class="flex justify-between text-sm text-gray-500 mb-1">
+        <div class="p-4 border-t border-gray-800 flex flex-col gap-3">
+            <div class="flex justify-between text-sm text-gray-500">
                 <span>Subtotal</span>
                 <span id="cart-subtotal">$0</span>
             </div>
-            <div class="flex justify-between items-center text-white text-2xl font-heading font-bold mb-4">
+            
+            <div class="flex justify-between items-center text-white text-2xl font-heading font-bold">
                 <span>TOTAL</span>
                 <span id="cart-total" class="text-cyan-400">$0</span>
             </div>
+
+            <!-- Selector Medio de Pago -->
+            <div>
+                <label class="text-xs text-gray-400 mb-1 block">Medio de Pago</label>
+                <select id="payment-method" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-sm text-white focus:outline-none focus:border-cyan-500 cursor-pointer">
+                    <option value="Efectivo">💵 Efectivo</option>
+                    <option value="Transferencia">📱 Transferencia (Nequi/Bancolombia)</option>
+                    <option value="Tarjeta">💳 Tarjeta (Datáfono)</option>
+                    <option value="Otro">📝 Otro</option>
+                </select>
+            </div>
+
             <button id="btn-checkout" onclick="processCheckout()" disabled
-                class="w-full bg-cyan-600 hover:bg-cyan-500 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 text-lg transition-all shadow-[0_0_20px_rgba(0,191,255,0.25)]">
+                class="w-full bg-cyan-600 hover:bg-cyan-500 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 text-lg transition-all shadow-[0_0_20px_rgba(0,191,255,0.25)] mt-1 cursor-pointer">
                 <i data-lucide="banknote" class="w-5 h-5"></i> COBRAR
             </button>
         </div>
