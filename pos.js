@@ -114,18 +114,9 @@ function clearPin() {
 }
 
 function updatePinDisplay() {
-    const dotsContainer = getEl('pin-dots');
-    if (dotsContainer) {
-        let dotsHTML = '';
-        // Mostramos un máximo de 6 puntos
-        for (let i = 0; i < 6; i++) {
-            if (i < currentPin.length) {
-                dotsHTML += '<div class="w-4 h-4 rounded-full bg-cyan-400 shadow-[0_0_10px_rgba(0,191,255,0.8)] transition-all"></div>';
-            } else {
-                dotsHTML += '<div class="w-4 h-4 rounded-full bg-gray-700 transition-all"></div>';
-            }
-        }
-        dotsContainer.innerHTML = dotsHTML;
+    const display = getEl('pin-display');
+    if (display) {
+        display.value = '•'.repeat(currentPin.length);
     }
 }
 
