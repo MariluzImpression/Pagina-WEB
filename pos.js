@@ -285,7 +285,7 @@ function renderGrid(items) {
         const tieneStock = item.stock !== null && item.stock !== undefined;
 
         const card = document.createElement('div');
-        card.className = `bg-gray-900 border border-gray-800 rounded-xl p-3 transition-all select-none flex flex-col relative ${
+        card.className = `bg-gray-900 border border-gray-800 rounded-xl p-2 transition-all select-none flex flex-row items-center gap-3 relative ${
             sinStock ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:border-cyan-500 hover:-translate-y-1 active:scale-95'
         }`;
 
@@ -297,24 +297,29 @@ function renderGrid(items) {
             ? `<video src="${escapeHTML(item.imagen)}" class="w-full h-full object-cover" muted loop autoplay playsinline></video>`
             : item.imagen
                 ? `<img src="${escapeHTML(item.imagen)}" class="w-full h-full object-cover" alt="${escapeHTML(item.nombre)}" loading="lazy">`
-                : '<div class="w-full h-full flex items-center justify-center text-gray-600"><i data-lucide="image" class="w-8 h-8"></i></div>';
+                : '<div class="w-full h-full flex items-center justify-center text-gray-600"><i data-lucide="image" class="w-6 h-6"></i></div>';
 
         const stockColor = item.stock > 10 ? 'text-cyan-400' : item.stock > 0 ? 'text-yellow-400' : 'text-red-500';
         const stockHTML = tieneStock ? `<span class="text-[10px] ${stockColor}">Stock: ${item.stock}</span>` : '';
 
         card.innerHTML = `
-            <div class="aspect-square bg-gray-800 rounded-lg mb-2 overflow-hidden">${mediaHTML}</div>
-            <div class="flex-1 flex flex-col justify-between">
-                <div>
+            <div class="w-14 h-14 shrink-0 bg-gray-800 rounded-lg overflow-hidden flex items-center justify-center">
+                ${mediaHTML}
+            </div>
+            <div class="flex-1 min-w-0">
+                <div class="flex justify-between items-start mb-0.5">
                     <span class="text-[10px] text-gray-500 uppercase font-bold tracking-wider">${escapeHTML(item.categoria || 'Varios')}</span>
-                    <h4 class="font-bold text-xs text-white line-clamp-2 leading-tight mt-0.5 mb-1">${escapeHTML(item.nombre)}</h4>
-                </div>
-                <div class="flex justify-between items-center pt-1 border-t border-gray-800">
-                    <span class="font-bold text-cyan-400 text-sm">$${fmt(item.precio)}</span>
                     ${stockHTML}
                 </div>
+                <h4 class="font-bold text-sm text-white truncate">${escapeHTML(item.nombre)}</h4>
+                <div class="font-bold text-cyan-400 text-sm mt-0.5">$${fmt(item.precio)}</div>
             </div>
-            ${sinStock ? '<div class="absolute inset-0 rounded-xl bg-black/40 flex items-center justify-center"><span class="bg-red-900 text-red-300 text-[10px] font-bold px-2 py-1 rounded">SIN STOCK</span></div>' : ''}
+            <div class="shrink-0 pl-2 border-l border-gray-800">
+                <button class="w-10 h-10 rounded-lg bg-cyan-900/30 text-cyan-400 flex items-center justify-center hover:bg-cyan-600 hover:text-white transition-colors">
+                    <i data-lucide="plus" class="w-5 h-5 pointer-events-none"></i>
+                </button>
+            </div>
+            ${sinStock ? '<div class="absolute inset-0 rounded-xl bg-black/60 flex items-center justify-center backdrop-blur-[1px]"><span class="bg-red-900 text-red-300 text-xs font-bold px-3 py-1.5 rounded-lg shadow-lg">SIN STOCK</span></div>' : ''}
         `;
         fragment.appendChild(card);
     });
@@ -424,8 +429,49 @@ function renderCartUI() {
 
     if (subtotalEl) subtotalEl.innerText = '$' + fmt(total);
     if (totalEl) totalEl.innerText = '$' + fmt(total);
-    if (btnCheckout) btnCheckout.disabled = false;
     if (typeof lucide !== 'undefined') lucide.createIcons();
+    updateCheckoutState();
+}
+
+function updateCheckoutState() {
+    const paymentSelector = getEl('payment-method');
+    const amountReceived = getEl('amount-received');
+    const changeDue = getEl('change-due');
+    const btnCheckout = getEl('btn-checkout');
+    
+    if (!btnCheckout) return;
+
+    let total = cart.reduce((sum, item) => sum + (item.precio * item.qty), 0);
+
+    if (cart.length === 0) {
+        btnCheckout.disabled = true;
+        if (changeDue) changeDue.innerText = '$0';
+        return;
+    }
+
+    const isCash = paymentSelector && paymentSelector.value === 'Efectivo';
+    
+    if (isCash && amountReceived) {
+        const received = Number(amountReceived.value) || 0;
+        const change = received - total;
+        
+        if (changeDue) {
+            if (change >= 0) {
+                changeDue.innerText = '$' + fmt(change);
+                changeDue.classList.remove('text-red-400');
+                changeDue.classList.add('text-green-400');
+            } else {
+                changeDue.innerText = 'Faltan $' + fmt(Math.abs(change));
+                changeDue.classList.remove('text-green-400');
+                changeDue.classList.add('text-red-400');
+            }
+        }
+        
+        btnCheckout.disabled = received < total;
+    } else {
+        if (changeDue) changeDue.innerText = '$0';
+        btnCheckout.disabled = false;
+    }
 }
 
 // ============================================================
@@ -498,18 +544,20 @@ async function processCheckout() {
     } catch (error) {
         console.error("Error al procesar venta:", error);
         alert("Error al cobrar: " + error.message);
-    } finally {
+        const btnCheckout = getEl('btn-checkout');
         if (btnCheckout) {
             btnCheckout.innerHTML = '<i data-lucide="banknote" class="w-6 h-6"></i> COBRAR';
-            btnCheckout.disabled = cart.length === 0;
             if (typeof lucide !== 'undefined') lucide.createIcons();
         }
+        updateCheckoutState();
     }
 }
 
 function newSale() {
     getEl('modal-receipt').classList.add('hidden');
     lastSale = null;
+    const amountReceived = getEl('amount-received');
+    if (amountReceived) amountReceived.value = '';
     cargarInventario();
 }
 
@@ -575,6 +623,28 @@ document.addEventListener('DOMContentLoaded', () => {
                     filterAndRenderGrid();
                 }, 250);
             });
+        }
+
+        // ── Calculadora de Vuelto ──
+        const paymentSelector = getEl('payment-method');
+        const amountReceived = getEl('amount-received');
+        const cashCalculator = getEl('cash-calculator');
+
+        if (paymentSelector && cashCalculator) {
+            paymentSelector.addEventListener('change', (e) => {
+                if (e.target.value === 'Efectivo') {
+                    cashCalculator.classList.remove('hidden');
+                    cashCalculator.classList.add('flex');
+                } else {
+                    cashCalculator.classList.add('hidden');
+                    cashCalculator.classList.remove('flex');
+                }
+                updateCheckoutState();
+            });
+        }
+
+        if (amountReceived) {
+            amountReceived.addEventListener('input', updateCheckoutState);
         }
 
         // ── Formulario de artículo manual ──
