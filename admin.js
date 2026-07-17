@@ -39,13 +39,23 @@ async function notificarMake(tipo, data) {
             console.warn("Webhook URL no configurada, se omite notificación a Make");
             return;
         }
+
+        // SOLUCIÓN DEFINITIVA PARA FACEBOOK REELS (Límite de 100-255 caracteres en Title)
+        let textoBase = data.nombre || data.titulo || "Publicación de Impression";
+        let tituloCorto = textoBase.substring(0, 95); // Seguro para cualquier red
+        let descLarga = data.titulo || textoBase; // El texto enriquecido completo
+
+        const payloadMake = {
+            tipo: tipo,
+            ...data,
+            titulo_corto: tituloCorto,
+            descripcion_larga: descLarga
+        };
+
         await fetch(MAKE_WEBHOOK_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                tipo: tipo,
-                ...data
-            })
+            body: JSON.stringify(payloadMake)
         });
         console.log("Notificación enviada a Make.com exitosamente.");
     } catch(e) {
