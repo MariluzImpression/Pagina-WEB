@@ -65,7 +65,8 @@
         /* Capa base para cuando no hay contenido o carga */
         #idle-screen {
             position: absolute;
-            inset: 0;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -124,8 +125,8 @@
 <body>
     <div id="tv-viewport" style="position: absolute; top: 0; left: 0; width: 2160px; height: 4096px; overflow: hidden; transform-origin: 0 0;">
     <div id="idle-screen">
-        <canvas id="particles-canvas" class="absolute inset-0 w-full h-full" style="z-index: 1; opacity: 0.6; pointer-events: none;"></canvas>
-        <div style="z-index: 2; display: flex; flex-direction: column; align-items: center;">
+        <canvas id="particles-canvas" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; opacity: 0.6; pointer-events: none;"></canvas>
+        <div style="position: relative; z-index: 2; display: flex; flex-direction: column; align-items: center; width: 100%;">
             <img src="logo.png" alt="IMPRESSION" class="idle-logo">
             <div class="loader-container" id="main-loader"><div class="loader-bar"></div></div>
             <p id="idle-text" style="margin-top: 40px; color: #888; text-align: center; max-width: 80%; font-size: 2.5rem; letter-spacing: 6px; text-transform: uppercase;">Conectando con la nube...</p>
@@ -373,19 +374,24 @@
 
             for(let i = 0; i < particles.length; i++) {
                 let p = particles[i];
-                p.z -= 3; // Velocidad de acercamiento
-                if (p.z <= 0) {
+                p.z -= 5; // Velocidad de acercamiento un poco más rápida para el efecto hiperespacio
+                
+                // Si la partícula pasa por detrás de la cámara, la reiniciamos lejos
+                if (p.z <= -200) {
                     p.z = 1000;
                     p.x = Math.random() * w - cx;
                     p.y = Math.random() * h - cy;
                 }
 
-                let fov = 350;
+                let fov = 400;
                 let scale = fov / (fov + p.z);
                 let x2d = p.x * scale + cx;
                 let y2d = p.y * scale + cy;
                 
-                let alpha = (1 - p.z / 1000); // Aparecen suavemente
+                // Aparecen suavemente desde el fondo
+                let alpha = (1 - p.z / 1000); 
+                if (alpha < 0) alpha = 0;
+                if (alpha > 1) alpha = 1;
 
                 ctx.beginPath();
                 ctx.arc(x2d, y2d, p.size * scale * 5, 0, Math.PI*2);
