@@ -226,6 +226,7 @@
                 if (item.tipo === 'video') {
                     el = document.createElement('video');
                     el.src = item.url;
+                    el.preload = 'auto'; // Obliga al navegador a descargar el video en segundo plano
                     el.muted = !audioEnabled;
                     el.playsInline = true;
                     el.loop = false; // Queremos que termine para pasar al siguiente
