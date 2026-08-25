@@ -35,7 +35,6 @@
             align-items: center;
         }
 
-        /* Imágenes y Videos a pantalla completa */
         .media-item {
             position: absolute;
             width: 100%;
@@ -45,6 +44,11 @@
             transition: opacity 1.2s ease-in-out;
             z-index: 1;
             background: #000;
+        }
+
+        .media-item.previous {
+            opacity: 1;
+            z-index: 1;
         }
 
         .media-item.active {
@@ -276,10 +280,16 @@
             const prevEl = document.getElementById('media-' + currentIndex);
             if (prevEl) {
                 prevEl.classList.remove('active');
+                prevEl.classList.add('previous');
                 if (prevEl.tagName === 'VIDEO') {
                     prevEl.pause();
                     prevEl.currentTime = 0;
                 }
+                
+                // Limpiar la clase previous después de que termine la transición
+                setTimeout(() => {
+                    prevEl.classList.remove('previous');
+                }, 1200); // 1.2s es la duración de la transición en CSS
             }
 
             // Calcular siguiente
