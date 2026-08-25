@@ -232,6 +232,7 @@ auth.onAuthStateChanged(async (user) => {
         cargarCatalogo();
         cargarPosUsuarios();
         cargarVentas();
+        if(window.cargarTV) cargarTV();
     } else {
         // No está conectado: Mostrar Login
         loginScreen.classList.remove('hidden');
@@ -330,6 +331,8 @@ formProducto.addEventListener('submit', async (e) => {
             notificarMake("nuevo_producto", makeData);
         }
         
+        await checkAndSendToTV('tv-producto', 'productos', id, imageUrl, tipoMedia);
+
         fileInput.value = '';
         window.closeModal('producto');
         cargarProductos();
@@ -467,6 +470,8 @@ formPromocion.addEventListener('submit', async (e) => {
             notificarMake("nueva_promocion", makeData);
         }
         
+        await checkAndSendToTV('tv-promocion', 'promociones', id, imageUrl, tipoMedia);
+
         fileInput.value = '';
         window.closeModal('promocion');
         cargarPromociones();
@@ -587,12 +592,14 @@ formServicio.addEventListener('submit', async (e) => {
         
         if (destino === 'ambas' || destino === 'redes') {
             const formato = document.querySelector('input[name="formato-servicio"]:checked').value;
-            const tituloEnriquecido = `✨ ${data.titulo}\n\n${data.desc}\n\nConoce más sobre este servicio en nuestra página web oficial o contáctanos por WhatsApp.`;
+            const tituloEnriquecido = `🛠️ ${data.titulo}\n\n${data.desc}\n\nConoce más sobre este servicio en nuestra página web oficial o contáctanos por WhatsApp.`;
             const makeData = { ...data, titulo: tituloEnriquecido, formato_redes: formato };
             delete makeData.timestamp; // Make.com no entiende objetos Firebase ServerTimestamp
             notificarMake("nuevo_servicio", makeData);
         }
         
+        await checkAndSendToTV('tv-servicio', 'servicios', id, imageUrl, tipoMedia);
+
         fileInput.value = '';
         window.closeModal('servicio');
         cargarServicios();
@@ -794,6 +801,8 @@ formGaleria.addEventListener('submit', async (e) => {
             notificarMake("nueva_galeria", makeData);
         }
         
+        await checkAndSendToTV('tv-galeria', 'galeria', null, imageUrl, tipoMedia);
+
         window.closeModal('galeria');
         cargarGaleria();
     } catch (error) {
@@ -912,6 +921,8 @@ document.getElementById('form-catalogo').addEventListener('submit', async (e) =>
             notificarMake("nuevo_catalogo", makeData);
         }
 
+        await checkAndSendToTV('tv-catalogo', 'catalogo', id, imageUrl, tipoMedia);
+
         window.closeModal('catalogo');
         cargarCatalogo();
     } catch (error) {
@@ -977,3 +988,137 @@ window.editarCatalogo = async (id) => {
         }
     } catch (error) { alert("Error al obtener datos: " + error.message); }
 };
+
+// ================= CROSS-POST TV =================
+async function checkAndSendToTV(checkboxId, collectionName, docId, newImageUrl, newTipoMedia) {
+    const cb = document.getElementById(checkboxId);
+    if(cb && cb.checked) {
+        let finalUrl = newImageUrl;
+        let finalTipo = newTipoMedia;
+        if (!finalUrl && docId) {
+            const doc = await db.collection(collectionName).doc(docId).get();
+            if (doc.exists) {
+                finalUrl = doc.data().imagen;
+                finalTipo = doc.data().tipo_media || 'imagen';
+            }
+        }
+        if (finalUrl) {
+            await db.collection("tv_cartelera").add({
+                url: finalUrl,
+                tipo: finalTipo || 'imagen',
+                duracion: 10,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            console.log("Enviado a TV:", finalUrl);
+            if(window.cargarTV) cargarTV();
+        }
+    }
+}
+
+// ================= PANTALLA TV =================
+const formTV = document.getElementById('form-tv');
+
+if(document.getElementById('tv-tipo')) {
+    document.getElementById('tv-tipo').addEventListener('change', (e) => {
+        const isVideo = e.target.value === 'video';
+        document.getElementById('tv-file').accept = isVideo ? 'video/*' : 'image/*';
+        document.getElementById('tv-duracion-container').style.display = isVideo ? 'none' : 'block';
+    });
+}
+
+if(formTV) {
+    formTV.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const btn = document.getElementById('btn-save-tv');
+        const fileInput = document.getElementById('tv-file');
+        const tipo = document.getElementById('tv-tipo').value;
+        const duracion = document.getElementById('tv-duracion').value;
+
+        try {
+            btn.innerText = 'Subiendo a Cloudinary...';
+            btn.disabled = true;
+
+            if (fileInput.files.length === 0) throw new Error("Selecciona un archivo");
+            const file = fileInput.files[0];
+
+            // Cloudinary upload (siempre para mantener calidad 4K)
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('upload_preset', 'videos_tv'); 
+            
+            const cloudName = 'dab6vcwfv';
+            const resourceType = tipo === 'video' ? 'video' : 'image';
+            const url = `https://api.cloudinary.com/v1_1/${cloudName}/${resourceType}/upload`;
+
+            const uploadRes = await fetch(url, {
+                method: 'POST',
+                body: formData
+            });
+
+            if (!uploadRes.ok) {
+                const errData = await uploadRes.json();
+                throw new Error(errData.error?.message || 'Error en Cloudinary');
+            }
+
+            const cloudinaryData = await uploadRes.json();
+            const secureUrl = cloudinaryData.secure_url;
+
+            btn.innerText = 'Guardando en Firebase...';
+
+            await db.collection("tv_cartelera").add({
+                url: secureUrl,
+                tipo: tipo,
+                duracion: Number(duracion) || 10,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            
+            fileInput.value = '';
+            window.closeModal('tv');
+            cargarTV();
+        } catch (error) {
+            alert("Error: " + error.message);
+        } finally {
+            btn.innerText = 'Enviar a TV';
+            btn.disabled = false;
+        }
+    });
+}
+
+async function cargarTV() {
+    const list = document.getElementById('tv-list');
+    if (!list) return;
+    list.innerHTML = '<div class="col-span-full text-center text-gray-400">Cargando...</div>';
+    
+    try {
+        const querySnapshot = await db.collection("tv_cartelera").orderBy("timestamp", "desc").get();
+        list.innerHTML = '';
+        
+        if(querySnapshot.empty) {
+            list.innerHTML = '<div class="col-span-full text-center text-gray-500 py-10">La cartelera está vacía.</div>';
+            return;
+        }
+
+        let html = '';
+        querySnapshot.forEach((docSnap) => {
+            const p = docSnap.data();
+            const id = docSnap.id;
+            
+            html += `
+                <div class="bg-gray-900 border border-green-800 rounded-xl overflow-hidden relative group">
+                    <div class="h-32 bg-gray-800 flex items-center justify-center overflow-hidden">
+                        ${p.tipo === 'video' ? `<video src="${escapeHTML(p.url)}" muted class="w-full h-full object-cover"></video>` : `<img src="${escapeHTML(p.url)}" class="w-full h-full object-cover">`}
+                    </div>
+                    <div class="p-3 flex justify-between items-center">
+                        <span class="text-xs text-gray-400 font-bold uppercase">${p.tipo}</span>
+                        <button onclick="eliminarDoc('tv_cartelera', '${id}')" class="w-8 h-8 bg-red-900 hover:bg-red-800 text-red-400 rounded flex items-center justify-center transition-colors"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                    </div>
+                </div>
+            `;
+        });
+        list.innerHTML = html;
+        if(window.lucide) lucide.createIcons();
+    } catch (error) {
+        console.error("Error cargando tv:", error);
+        list.innerHTML = '<div class="col-span-full text-center text-red-500">Error al cargar.</div>';
+    }
+}
