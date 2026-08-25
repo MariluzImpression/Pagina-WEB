@@ -76,7 +76,7 @@
 
         .idle-logo {
             width: 60%;
-            max-width: 400px;
+            max-width: 1400px;
             animation: pulse-glow 3s ease-in-out infinite alternate;
         }
 
@@ -87,11 +87,11 @@
 
         .loader-container {
             position: relative;
-            width: 200px;
-            height: 4px;
+            width: 600px;
+            height: 12px;
             background: #333;
-            border-radius: 4px;
-            margin-top: 40px;
+            border-radius: 12px;
+            margin-top: 80px;
             overflow: hidden;
         }
 
@@ -113,7 +113,7 @@
             position: absolute;
             bottom: 0;
             left: 0;
-            height: 4px;
+            height: 20px;
             background: #FF007F;
             width: 0%;
             z-index: 10;
@@ -122,13 +122,13 @@
     </style>
 </head>
 <body>
-
+    <div id="tv-viewport" style="position: absolute; top: 0; left: 0; width: 2160px; height: 4096px; overflow: hidden; transform-origin: 0 0;">
     <div id="idle-screen">
         <canvas id="particles-canvas" class="absolute inset-0 w-full h-full" style="z-index: 1; opacity: 0.6; pointer-events: none;"></canvas>
         <div style="z-index: 2; display: flex; flex-direction: column; align-items: center;">
             <img src="logo.png" alt="IMPRESSION" class="idle-logo">
             <div class="loader-container" id="main-loader"><div class="loader-bar"></div></div>
-            <p id="idle-text" style="margin-top: 20px; color: #888; text-align: center; max-width: 80%; font-size: 0.9rem; letter-spacing: 2px; text-transform: uppercase;">Conectando con la nube...</p>
+            <p id="idle-text" style="margin-top: 40px; color: #888; text-align: center; max-width: 80%; font-size: 2.5rem; letter-spacing: 6px; text-transform: uppercase;">Conectando con la nube...</p>
         </div>
     </div>
 
@@ -346,15 +346,15 @@
         let w, h;
 
         function initParticles() {
-            w = canvas.width = window.innerWidth;
-            h = canvas.height = window.innerHeight;
+            w = canvas.width = 2160;
+            h = canvas.height = 4096;
             particles = [];
             for(let i = 0; i < 150; i++) {
                 particles.push({
                     x: Math.random() * w - w/2,
                     y: Math.random() * h - h/2,
                     z: Math.random() * 1000,
-                    size: Math.random() * 1.5 + 0.5,
+                    size: Math.random() * 3.0 + 1.5,
                     color: Math.random() > 0.5 ? '#FF007F' : '#00F0FF'
                 });
             }
@@ -398,12 +398,32 @@
 
         window.addEventListener('resize', () => {
             if(canvas) initParticles();
+            scaleViewport();
         });
 
         if(canvas) {
             initParticles();
             drawParticles();
         }
+
+        function scaleViewport() {
+            const vp = document.getElementById('tv-viewport');
+            const scaleX = window.innerWidth / 2160;
+            const scaleY = window.innerHeight / 4096;
+            // Scale by the minimum to fit within the screen while maintaining aspect ratio,
+            // or just stretch it if they strictly want to fill whatever screen it is. 
+            // They asked for visualization size 2160x4096.
+            // Using min will preserve aspect ratio and avoid stretching.
+            const scale = Math.min(scaleX, scaleY);
+            
+            // Si quieres que se estire a la fuerza para llenar los bordes negros (strech):
+            // vp.style.transform = `scale(${scaleX}, ${scaleY})`;
+            
+            // Si quieres que mantenga proporcion perfecta:
+            vp.style.transform = `scale(${scaleX}, ${scaleY})`;
+        }
+        scaleViewport();
     </script>
+    </div>
 </body>
 </html>
