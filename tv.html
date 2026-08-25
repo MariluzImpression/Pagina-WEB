@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IMPRESSION TV</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@800&display=swap" rel="stylesheet">
+    
+    <!-- Firebase Compat SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            background-color: #000;
+            color: #fff;
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        #media-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Imágenes y Videos a pantalla completa */
+        .media-item {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: 0;
+            transition: opacity 1.2s ease-in-out;
+            z-index: 1;
+            background: #000;
+        }
+
+        .media-item.active {
+            opacity: 1;
+            z-index: 2;
+        }
+
+        /* Efecto Ken Burns (Acercamiento lento y elegante para fotos) */
+        img.media-item.active {
+            animation: kenburns 20s linear forwards;
+        }
+
+        @keyframes kenburns {
+            0% { transform: scale(1.0); }
+            100% { transform: scale(1.15); }
+        }
+
+        /* Capa base para cuando no hay contenido o carga */
+        #idle-screen {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 0;
+            background: radial-gradient(circle at center, #1a000d 0%, #000000 100%);
+        }
+
+        .idle-logo {
+            width: 60%;
+            max-width: 400px;
+            animation: pulse-glow 3s ease-in-out infinite alternate;
+        }
+
+        @keyframes pulse-glow {
+            0% { filter: drop-shadow(0 0 10px rgba(255,0,127,0.2)); transform: scale(0.98); }
+            100% { filter: drop-shadow(0 0 30px rgba(255,0,127,0.8)); transform: scale(1.02); }
+        }
+
+        .loader-container {
+            position: relative;
+            width: 200px;
+            height: 4px;
+            background: #333;
+            border-radius: 4px;
+            margin-top: 40px;
+            overflow: hidden;
+        }
+
+        .loader-bar {
+            position: absolute;
+            top: 0; left: 0; height: 100%;
+            width: 50%;
+            background: linear-gradient(90deg, transparent, #FF007F, transparent);
+            animation: scan 1.5s ease-in-out infinite;
+        }
+
+        @keyframes scan {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(200%); }
+        }
+
+        /* Barra de progreso inferior opcional */
+        #progress-bar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            height: 4px;
+            background: #FF007F;
+            width: 0%;
+            z-index: 10;
+            transition: width linear;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="idle-screen">
+        <canvas id="particles-canvas" class="absolute inset-0 w-full h-full" style="z-index: 1; opacity: 0.6; pointer-events: none;"></canvas>
+        <div style="z-index: 2; display: flex; flex-direction: column; align-items: center;">
+            <img src="logo.png" alt="IMPRESSION" class="idle-logo">
+            <div class="loader-container" id="main-loader"><div class="loader-bar"></div></div>
+            <p id="idle-text" style="margin-top: 20px; color: #888; text-align: center; max-width: 80%; font-size: 0.9rem; letter-spacing: 2px; text-transform: uppercase;">Conectando con la nube...</p>
+        </div>
+    </div>
+
+    <div id="media-container"></div>
+    <div id="progress-bar"></div>
+
+    <!-- Botón oculto para activar sonido si se requiere -->
+    <button id="unmute-btn" style="position: absolute; top: 20px; right: 20px; z-index: 999; background: rgba(0,0,0,0.5); border: 1px solid #333; color: white; padding: 10px; border-radius: 50%; cursor: pointer; display: none;">
+        🔊
+    </button>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyCpgNwZmq3rgC6ED9DZwWSRv9_DUxV3K-Y",
+            authDomain: "impression-web-82c33.firebaseapp.com",
+            projectId: "impression-web-82c33",
+            storageBucket: "impression-web-82c33.firebasestorage.app",
+            messagingSenderId: "622168477796",
+            appId: "1:622168477796:web:2945f0a90ce92bdd4ecf71"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        let playlist = [];
+        let currentIndex = -1;
+        let playTimeout = null;
+        let isPlaying = false;
+        let audioEnabled = false;
+
+        const container = document.getElementById('media-container');
+        const idleScreen = document.getElementById('idle-screen');
+        const idleText = document.getElementById('idle-text');
+        const mainLoader = document.getElementById('main-loader');
+        const progressBar = document.getElementById('progress-bar');
+        const unmuteBtn = document.getElementById('unmute-btn');
+
+        // Permitir sonido si el usuario toca la pantalla una vez
+        document.body.addEventListener('click', () => {
+            audioEnabled = true;
+            unmuteBtn.style.display = 'none';
+            const currentVideo = document.querySelector('video.active');
+            if(currentVideo) {
+                currentVideo.muted = false;
+            }
+        }, { once: true });
+
+        // Escuchar cambios en tiempo real
+        db.collection("tv_cartelera").orderBy("timestamp", "asc").onSnapshot((snapshot) => {
+            if (snapshot.empty) {
+                playlist = [];
+                stopPlayback();
+                idleText.innerText = "No hay contenido programado.";
+                mainLoader.style.display = 'none';
+                return;
+            }
+
+            const newPlaylist = [];
+            snapshot.forEach(doc => {
+                const data = doc.data();
+                newPlaylist.push({
+                    id: doc.id,
+                    url: data.url,
+                    tipo: data.tipo, // 'imagen' o 'video'
+                    duracion: data.duracion || 10 // segundos (por defecto 10 para imágenes)
+                });
+            });
+
+            // Si hay diferencias, actualizamos
+            if (JSON.stringify(playlist) !== JSON.stringify(newPlaylist)) {
+                playlist = newPlaylist;
+                console.log("Playlist actualizada desde la nube:", playlist);
+                
+                // Precargar elementos en el DOM
+                rebuildDOM();
+
+                if (!isPlaying) {
+                    currentIndex = -1;
+                    playNext();
+                }
+            }
+        }, (error) => {
+            console.error("Error al escuchar cartelera:", error);
+            idleText.innerText = "Error de conexión con la base de datos.";
+            mainLoader.style.display = 'none';
+        });
+
+        function rebuildDOM() {
+            // Eliminar elementos antiguos
+            container.innerHTML = '';
+
+            playlist.forEach((item, index) => {
+                let el;
+                if (item.tipo === 'video') {
+                    el = document.createElement('video');
+                    el.src = item.url;
+                    el.muted = !audioEnabled;
+                    el.playsInline = true;
+                    el.loop = false; // Queremos que termine para pasar al siguiente
+                    
+                    // Evento para avanzar cuando el video termina
+                    el.addEventListener('ended', () => {
+                        if (currentIndex === index) {
+                            playNext();
+                        }
+                    });
+                    
+                    // Manejar errores de carga
+                    el.addEventListener('error', () => {
+                        console.error("Error cargando video:", item.url);
+                        if (currentIndex === index) playNext();
+                    });
+                } else {
+                    el = document.createElement('img');
+                    el.src = item.url;
+                    
+                    el.addEventListener('error', () => {
+                        console.error("Error cargando imagen:", item.url);
+                        if (currentIndex === index) playNext();
+                    });
+                }
+
+                el.className = 'media-item';
+                el.id = 'media-' + index;
+                // Configurar alta calidad de renderizado de imagen para pantallas grandes
+                if(item.tipo !== 'video') {
+                    el.style.imageRendering = 'high-quality';
+                }
+                container.appendChild(el);
+            });
+        }
+
+        function playNext() {
+            if (playlist.length === 0) {
+                stopPlayback();
+                return;
+            }
+
+            isPlaying = true;
+            idleScreen.style.zIndex = -1; // Ocultar pantalla de idle
+            
+            // Ocultar actual
+            const prevEl = document.getElementById('media-' + currentIndex);
+            if (prevEl) {
+                prevEl.classList.remove('active');
+                if (prevEl.tagName === 'VIDEO') {
+                    prevEl.pause();
+                    prevEl.currentTime = 0;
+                }
+            }
+
+            // Calcular siguiente
+            currentIndex = (currentIndex + 1) % playlist.length;
+            const currentItem = playlist[currentIndex];
+            const currentEl = document.getElementById('media-' + currentIndex);
+
+            if (!currentEl) {
+                setTimeout(playNext, 1000);
+                return;
+            }
+
+            // Mostrar actual
+            currentEl.classList.add('active');
+            
+            clearTimeout(playTimeout);
+            progressBar.style.transition = 'none';
+            progressBar.style.width = '0%';
+
+            if (currentItem.tipo === 'video') {
+                if(!audioEnabled) unmuteBtn.style.display = 'block';
+                currentEl.muted = !audioEnabled;
+                
+                let playPromise = currentEl.play();
+                if (playPromise !== undefined) {
+                    playPromise.catch(error => {
+                        console.warn("Autoplay prevenido. Silenciando y forzando play.", error);
+                        currentEl.muted = true;
+                        currentEl.play().catch(e => {
+                            console.error("No se pudo reproducir el video:", e);
+                            playNext();
+                        });
+                    });
+                }
+                
+                currentEl.ontimeupdate = () => {
+                    if(currentEl.duration) {
+                        const percentage = (currentEl.currentTime / currentEl.duration) * 100;
+                        progressBar.style.width = percentage + '%';
+                    }
+                };
+            } else {
+                // Es imagen
+                setTimeout(() => {
+                    progressBar.style.transition = `width ${currentItem.duracion}s linear`;
+                    progressBar.style.width = '100%';
+                }, 50);
+
+                playTimeout = setTimeout(() => {
+                    playNext();
+                }, currentItem.duracion * 1000);
+            }
+        }
+
+        function stopPlayback() {
+            isPlaying = false;
+            clearTimeout(playTimeout);
+            idleScreen.style.zIndex = 10;
+            container.innerHTML = '';
+            progressBar.style.width = '0%';
+        }
+        // --- SISTEMA DE PARTÍCULAS 3D ---
+        const canvas = document.getElementById('particles-canvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+        let w, h;
+
+        function initParticles() {
+            w = canvas.width = window.innerWidth;
+            h = canvas.height = window.innerHeight;
+            particles = [];
+            for(let i = 0; i < 150; i++) {
+                particles.push({
+                    x: Math.random() * w - w/2,
+                    y: Math.random() * h - h/2,
+                    z: Math.random() * 1000,
+                    size: Math.random() * 1.5 + 0.5,
+                    color: Math.random() > 0.5 ? '#FF007F' : '#00F0FF'
+                });
+            }
+        }
+
+        function drawParticles() {
+            requestAnimationFrame(drawParticles);
+            
+            if(idleScreen.style.zIndex === "-1") return; // No animar si hay video
+
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.15)'; // Estela suave
+            ctx.fillRect(0, 0, w, h);
+            
+            const cx = w/2;
+            const cy = h/2;
+
+            for(let i = 0; i < particles.length; i++) {
+                let p = particles[i];
+                p.z -= 3; // Velocidad de acercamiento
+                if (p.z <= 0) {
+                    p.z = 1000;
+                    p.x = Math.random() * w - cx;
+                    p.y = Math.random() * h - cy;
+                }
+
+                let fov = 350;
+                let scale = fov / (fov + p.z);
+                let x2d = p.x * scale + cx;
+                let y2d = p.y * scale + cy;
+                
+                let alpha = (1 - p.z / 1000); // Aparecen suavemente
+
+                ctx.beginPath();
+                ctx.arc(x2d, y2d, p.size * scale * 5, 0, Math.PI*2);
+                ctx.fillStyle = p.color;
+                ctx.globalAlpha = alpha;
+                ctx.fill();
+            }
+            ctx.globalAlpha = 1;
+        }
+
+        window.addEventListener('resize', () => {
+            if(canvas) initParticles();
+        });
+
+        if(canvas) {
+            initParticles();
+            drawParticles();
+        }
+    </script>
+</body>
+</html>
