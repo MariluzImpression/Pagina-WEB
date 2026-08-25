@@ -1090,7 +1090,7 @@ async function cargarTV() {
     list.innerHTML = '<div class="col-span-full text-center text-gray-400">Cargando...</div>';
     
     try {
-        const querySnapshot = await db.collection("tv_cartelera").orderBy("timestamp", "desc").get();
+        const querySnapshot = await db.collection("tv_cartelera").orderBy("timestamp", "asc").get();
         list.innerHTML = '';
         
         if(querySnapshot.empty) {
@@ -1099,18 +1099,28 @@ async function cargarTV() {
         }
 
         let html = '';
-        querySnapshot.forEach((docSnap) => {
+        const docs = querySnapshot.docs;
+        docs.forEach((docSnap, index) => {
             const p = docSnap.data();
             const id = docSnap.id;
             
+            // Botones de orden
+            let btnLeft = index > 0 ? `<button onclick="moverItemTV('${id}', -1)" class="w-8 h-8 bg-gray-700 hover:bg-gray-600 rounded flex items-center justify-center transition-colors text-white" title="Mover Izquierda"><i data-lucide="chevron-left" class="w-4 h-4"></i></button>` : `<div class="w-8 h-8"></div>`;
+            let btnRight = index < docs.length - 1 ? `<button onclick="moverItemTV('${id}', 1)" class="w-8 h-8 bg-gray-700 hover:bg-gray-600 rounded flex items-center justify-center transition-colors text-white" title="Mover Derecha"><i data-lucide="chevron-right" class="w-4 h-4"></i></button>` : `<div class="w-8 h-8"></div>`;
+
             html += `
                 <div class="bg-gray-900 border border-green-800 rounded-xl overflow-hidden relative group">
-                    <div class="h-32 bg-gray-800 flex items-center justify-center overflow-hidden">
+                    <div class="h-32 bg-gray-800 flex items-center justify-center overflow-hidden relative">
                         ${p.tipo === 'video' ? `<video src="${escapeHTML(p.url)}" muted class="w-full h-full object-cover"></video>` : `<img src="${escapeHTML(p.url)}" class="w-full h-full object-cover">`}
+                        
+                        <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                            ${btnLeft}
+                            ${btnRight}
+                        </div>
                     </div>
                     <div class="p-3 flex justify-between items-center">
-                        <span class="text-xs text-gray-400 font-bold uppercase">${p.tipo}</span>
-                        <button onclick="eliminarDoc('tv_cartelera', '${id}')" class="w-8 h-8 bg-red-900 hover:bg-red-800 text-red-400 rounded flex items-center justify-center transition-colors"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                        <span class="text-xs text-gray-400 font-bold uppercase"><span class="text-green-500">#${index + 1}</span> - ${p.tipo}</span>
+                        <button onclick="eliminarDoc('tv_cartelera', '${id}')" class="w-8 h-8 bg-red-900/50 hover:bg-red-800 text-red-400 rounded flex items-center justify-center transition-colors"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
                     </div>
                 </div>
             `;
@@ -1122,3 +1132,32 @@ async function cargarTV() {
         list.innerHTML = '<div class="col-span-full text-center text-red-500">Error al cargar.</div>';
     }
 }
+
+async function moverItemTV(currentId, dir) {
+    try {
+        const querySnapshot = await db.collection("tv_cartelera").orderBy("timestamp", "asc").get();
+        const docs = querySnapshot.docs;
+        const currentIndex = docs.findIndex(d => d.id === currentId);
+        
+        if (currentIndex === -1) return;
+        
+        const targetIndex = currentIndex + dir;
+        if (targetIndex < 0 || targetIndex >= docs.length) return; // Fuera de limites
+        
+        const currentDoc = docs[currentIndex];
+        const targetDoc = docs[targetIndex];
+        
+        const time1 = currentDoc.data().timestamp;
+        const time2 = targetDoc.data().timestamp;
+        
+        // Intercambiar timestamps
+        if (time1 && time2) {
+            await db.collection("tv_cartelera").doc(currentDoc.id).update({ timestamp: time2 });
+            await db.collection("tv_cartelera").doc(targetDoc.id).update({ timestamp: time1 });
+            cargarTV(); // Recargar UI
+        }
+    } catch (e) {
+        alert("Error al mover: " + e.message);
+    }
+}
+
