@@ -174,6 +174,22 @@
             }
         }, { once: true });
 
+        // Forzar pantalla completa al primer toque o botón
+        function enterFullScreen() {
+            let elem = document.documentElement;
+            if (!document.fullscreenElement) {
+                if (elem.requestFullscreen) {
+                    elem.requestFullscreen().catch(e => console.log(e));
+                } else if (elem.webkitRequestFullscreen) { /* Safari / TV antiguos */
+                    elem.webkitRequestFullscreen();
+                } else if (elem.msRequestFullscreen) { /* IE11 */
+                    elem.msRequestFullscreen();
+                }
+            }
+        }
+        document.addEventListener('click', enterFullScreen);
+        document.addEventListener('keydown', enterFullScreen);
+
         // Escuchar cambios en tiempo real
         db.collection("tv_cartelera").orderBy("timestamp", "asc").onSnapshot((snapshot) => {
             if (snapshot.empty) {
