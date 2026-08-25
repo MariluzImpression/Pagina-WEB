@@ -120,7 +120,7 @@
     </style>
 </head>
 <body>
-    <div id="tv-viewport" style="position: absolute; top: 0; left: 0; width: 2160px; height: 4096px; overflow: hidden; transform-origin: 0 0;">
+    <div id="tv-viewport" style="position: absolute; top: 50%; left: 50%; width: 2160px; height: 4096px; margin-left: -1080px; margin-top: -2048px; overflow: hidden; transform-origin: center center;">
     <div id="idle-screen">
         <canvas id="particles-canvas" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; opacity: 0.6; pointer-events: none;"></canvas>
         <div style="position: relative; z-index: 2; display: flex; flex-direction: column; align-items: center; width: 100%;">
@@ -418,19 +418,28 @@
 
         function scaleViewport() {
             const vp = document.getElementById('tv-viewport');
-            const scaleX = window.innerWidth / 2160;
-            const scaleY = window.innerHeight / 4096;
-            // Scale by the minimum to fit within the screen while maintaining aspect ratio,
-            // or just stretch it if they strictly want to fill whatever screen it is. 
-            // They asked for visualization size 2160x4096.
-            // Using min will preserve aspect ratio and avoid stretching.
-            const scale = Math.min(scaleX, scaleY);
+            const urlParams = new URLSearchParams(window.location.search);
+            const rot = urlParams.get('rotar'); // '90' o '-90'
             
-            // Si quieres que se estire a la fuerza para llenar los bordes negros (strech):
-            // vp.style.transform = `scale(${scaleX}, ${scaleY})`;
+            let w = window.innerWidth;
+            let h = window.innerHeight;
             
-            // Si quieres que mantenga proporcion perfecta:
-            vp.style.transform = `scale(${scaleX}, ${scaleY})`;
+            // Si el TV está horizontal (ej. 1920x1080) pero montado verticalmente
+            if (rot === '90' || rot === '-90') {
+                let temp = w;
+                w = h;
+                h = temp;
+            }
+            
+            const scaleX = w / 2160;
+            const scaleY = h / 4096;
+            
+            if (rot === '90' || rot === '-90') {
+                // Primero escalamos y luego rotamos el resultado
+                vp.style.transform = `rotate(${rot}deg) scale(${scaleX}, ${scaleY})`;
+            } else {
+                vp.style.transform = `scale(${scaleX}, ${scaleY})`;
+            }
         }
         scaleViewport();
     </script>
