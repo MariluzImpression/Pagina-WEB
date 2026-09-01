@@ -1042,26 +1042,48 @@ if(formTV) {
             const file = fileInput.files[0];
 
             // Cloudinary upload (siempre para mantener calidad 4K)
-            const formData = new FormData();
-            formData.append('file', file);
-            formData.append('upload_preset', 'videos_tv'); 
-            
-            const cloudName = 'dab6vcwfv';
-            const resourceType = tipo === 'video' ? 'video' : 'image';
-            const url = `https://api.cloudinary.com/v1_1/${cloudName}/${resourceType}/upload`;
-
-            const uploadRes = await fetch(url, {
-                method: 'POST',
-                body: formData
+            const secureUrl = await new Promise((resolve, reject) => {
+                const xhr = new XMLHttpRequest();
+                const cloudName = 'dab6vcwfv';
+                const resourceType = tipo === 'video' ? 'video' : 'image';
+                const url = `https://api.cloudinary.com/v1_1/${cloudName}/${resourceType}/upload`;
+                
+                xhr.open('POST', url, true);
+                
+                xhr.upload.onprogress = (e) => {
+                    if (e.lengthComputable) {
+                        const percent = Math.round((e.loaded / e.total) * 100);
+                        btn.innerText = `Subiendo: ${percent}%`;
+                    }
+                };
+                
+                xhr.onload = () => {
+                    if (xhr.status >= 200 && xhr.status < 300) {
+                        const res = JSON.parse(xhr.responseText);
+                        resolve(res.secure_url);
+                    } else {
+                        try {
+                            const err = JSON.parse(xhr.responseText);
+                            // Error común: límite de 100MB en plan gratuito de Cloudinary
+                            if(err.error?.message?.includes("File size too large")) {
+                                reject(new Error("El archivo es demasiado pesado (máximo permitido 100 MB). Intenta comprimirlo o recortarlo un poco."));
+                            } else {
+                                reject(new Error(err.error?.message || `Error HTTP: ${xhr.status}`));
+                            }
+                        } catch(e) {
+                            reject(new Error(`Error de servidor HTTP: ${xhr.status}`));
+                        }
+                    }
+                };
+                
+                xhr.onerror = () => reject(new Error("Error de conexión. Archivo muy pesado o internet inestable."));
+                
+                const formData = new FormData();
+                formData.append('file', file);
+                formData.append('upload_preset', 'videos_tv'); 
+                
+                xhr.send(formData);
             });
-
-            if (!uploadRes.ok) {
-                const errData = await uploadRes.json();
-                throw new Error(errData.error?.message || 'Error en Cloudinary');
-            }
-
-            const cloudinaryData = await uploadRes.json();
-            const secureUrl = cloudinaryData.secure_url;
 
             btn.innerText = 'Guardando en Firebase...';
 
