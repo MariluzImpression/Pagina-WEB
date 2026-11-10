@@ -289,10 +289,10 @@
         /* Gorrito Navideño en el Logo de Navegación */
         .santa-hat {
             position: absolute;
-            top: -12px;
-            left: -10px;
-            width: 36px;
-            height: 32px;
+            top: -6px;
+            left: 16px;
+            width: 32px;
+            height: 28px;
             z-index: 25;
             pointer-events: none;
             filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.5));
@@ -300,25 +300,33 @@
             transform-origin: bottom center;
         }
 
-        /* Gorrito en el Logo del Hero Scanner */
+        /* Gorrito Navideño en el Logo del Hero Scanner (alineado exactamente sobre la letra I) */
         .hero-santa-hat {
             position: absolute;
-            top: 4px;
-            left: 0px;
-            width: 52px;
-            height: 46px;
+            top: 30px;
+            left: 9.8%;
+            width: 48px;
+            height: 42px;
             z-index: 25;
             pointer-events: none;
             filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.6));
             animation: hatWiggle 7s ease-in-out infinite 1.2s;
             transform-origin: bottom center;
         }
-        @media (max-width: 640px) {
+        @media (max-width: 768px) {
             .hero-santa-hat {
-                left: -4px;
-                width: 38px;
-                height: 34px;
-                top: 8px;
+                top: 22px;
+                left: 9.8%;
+                width: 36px;
+                height: 32px;
+            }
+        }
+        @media (max-width: 480px) {
+            .hero-santa-hat {
+                top: 15px;
+                left: 9.6%;
+                width: 28px;
+                height: 25px;
             }
         }
 
@@ -345,7 +353,7 @@
             gap: 12px;
             padding: 9px 16px;
             border-radius: 9999px;
-            background: rgba(12, 16, 14, 0.82);
+            background: rgba(12, 16, 14, 0.85);
             backdrop-filter: blur(16px);
             -webkit-backdrop-filter: blur(16px);
             border: 1px solid rgba(255, 215, 0, 0.35);
@@ -353,6 +361,7 @@
             font-family: 'Montserrat', sans-serif;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             user-select: none;
+            cursor: pointer;
         }
         #navidad-capsula:hover {
             border-color: rgba(255, 215, 0, 0.7);
@@ -378,6 +387,155 @@
             background: rgba(255, 255, 255, 0.22);
             border-color: rgba(255, 215, 0, 0.6);
             color: #ffd700;
+        }
+
+        /* Tarjeta de Saludo Navideño con Papá Noel en el Hero */
+        .navidad-card-saludo {
+            max-width: 680px;
+            width: 100%;
+            margin: 44px auto 10px auto;
+            padding: 26px 30px;
+            border-radius: 28px;
+            background: linear-gradient(135deg, rgba(140, 20, 40, 0.32) 0%, rgba(10, 15, 12, 0.78) 50%, rgba(20, 80, 45, 0.28) 100%);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 215, 0, 0.4);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6), 0 0 35px rgba(255, 42, 75, 0.18), inset 0 0 30px rgba(255, 215, 0, 0.05);
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            gap: 24px;
+            position: relative;
+            overflow: hidden;
+            text-align: left;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .navidad-card-saludo:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 45px rgba(0, 0, 0, 0.7), 0 0 45px rgba(255, 215, 0, 0.25);
+        }
+
+        @media (max-width: 640px) {
+            .navidad-card-saludo {
+                flex-direction: column;
+                text-align: center;
+                padding: 22px 18px;
+                gap: 16px;
+            }
+        }
+
+        /* Resplandores festivos sutiles en la tarjeta */
+        .navidad-card-saludo::before {
+            content: '';
+            position: absolute;
+            top: -50px;
+            left: -50px;
+            width: 130px;
+            height: 130px;
+            background: radial-gradient(circle, rgba(255, 42, 75, 0.4) 0%, transparent 70%);
+            pointer-events: none;
+        }
+        .navidad-card-saludo::after {
+            content: '';
+            position: absolute;
+            bottom: -50px;
+            right: -50px;
+            width: 130px;
+            height: 130px;
+            background: radial-gradient(circle, rgba(255, 215, 0, 0.35) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        /* Animaciones del Papá Noel */
+        .santa-anim-wrapper {
+            width: 115px;
+            height: 115px;
+            flex-shrink: 0;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: santaFloat 4s ease-in-out infinite;
+        }
+
+        @keyframes santaFloat {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-6px); }
+        }
+
+        .santa-hand-wave {
+            transform-origin: 75px 60px;
+            animation: santaWave 2.4s ease-in-out infinite;
+        }
+
+        @keyframes santaWave {
+            0%, 100% { transform: rotate(0deg); }
+            25% { transform: rotate(-14deg); }
+            50% { transform: rotate(8deg); }
+            75% { transform: rotate(-10deg); }
+        }
+
+        .santa-eyes {
+            animation: santaBlink 5s infinite;
+            transform-origin: center;
+        }
+
+        @keyframes santaBlink {
+            0%, 94%, 98%, 100% { transform: scaleY(1); }
+            96% { transform: scaleY(0.1); }
+        }
+
+        .sparkle {
+            position: absolute;
+            color: #ffd700;
+            font-size: 15px;
+            animation: sparkleTwinkle 2s infinite alternate;
+            pointer-events: none;
+            user-select: none;
+        }
+        .sparkle-1 { top: 4px; right: 8px; animation-delay: 0.2s; }
+        .sparkle-2 { bottom: 6px; left: 4px; animation-delay: 1.1s; }
+
+        @keyframes sparkleTwinkle {
+            0% { opacity: 0.3; transform: scale(0.8) rotate(0deg); }
+            100% { opacity: 1; transform: scale(1.25) rotate(45deg); filter: drop-shadow(0 0 6px #ffd700); }
+        }
+
+        .saludo-title {
+            font-size: 21px;
+            font-weight: 800;
+            color: #ffd700;
+            margin: 0 0 6px 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-family: 'Montserrat', sans-serif;
+            letter-spacing: -0.02em;
+        }
+        @media (max-width: 640px) {
+            .saludo-title {
+                justify-content: center;
+            }
+        }
+
+        .saludo-text {
+            font-size: 15px;
+            line-height: 1.6;
+            color: #f1f5f9;
+            margin: 0;
+            font-family: 'Inter', sans-serif;
+            font-weight: 400;
+        }
+
+        .saludo-author {
+            display: inline-block;
+            margin-top: 10px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: #ffd700;
+            font-family: 'Montserrat', sans-serif;
         }
 
         /* Badge festivo en el hero */
@@ -1624,14 +1782,6 @@
         </script>
     </div>
 
-    <!-- ========================================================================= -->
-    <!-- TEMA NAVIDEÑO OFICIAL IMPRESSION (ELEMENTOS Y SCRIPT)                      -->
-    <!-- (Para desactivar tras la temporada: eliminar o comentar este bloque)       -->
-    <!-- ========================================================================= -->
-    <div id="bloque-navidad">
-        <!-- Guirnalda de luces navideñas -->
-        <div id="christmas-lights-bar" class="christmas-lights"></div>
-
         <!-- Canvas de caída de nieve -->
         <canvas id="navidad-snow-canvas"></canvas>
 
@@ -1836,6 +1986,545 @@
 
                 if (toggleBtn) {
                     toggleBtn.addEventListener('click', () => {
+                        isSnowActive = !isSnowActive;
+                        localStorage.setItem('impression_snow_active', isSnowActive ? 'true' : 'false');
+                        updateButtonUI();
+                        if (isSnowActive) {
+                            startSnow();
+                        } else {
+                            stopSnow();
+                        }
+                    });
+                }
+            })();
+        </script>
+    </div>
+
+        <!-- Canvas de caída de nieve -->
+        <canvas id="navidad-snow-canvas"></canvas>
+
+        <!-- Cápsula festiva flotante -->
+        <div id="navidad-capsula">
+            <span class="text-xl animate-pulse" title="¡Feliz Navidad!">🎄</span>
+            <div class="flex flex-col leading-tight">
+                <span class="text-[11px] font-bold tracking-wide text-yellow-300">Temporada Navideña</span>
+                <span class="text-[9px] text-gray-300 font-sans">Corporativo Impression</span>
+            </div>
+            <button id="btn-toggle-snow" class="btn-toggle-snow" title="Activar o desactivar efecto de nieve">
+                <span id="snow-status-icon">❄️</span>
+                <span id="snow-status-text">Nieve: ON</span>
+            </button>
+        </div>
+
+        <script id="script-navidad">
+            (function() {
+                // --- 1. Generar Luces Navideñas en la parte superior ---
+                const lightsBar = document.getElementById('christmas-lights-bar');
+                if (lightsBar) {
+                    const colorClasses = ['bulb-gold', 'bulb-red', 'bulb-green', 'bulb-blue', 'bulb-pink'];
+                    const count = Math.max(16, Math.floor(window.innerWidth / 45));
+                    for (let i = 0; i < count; i++) {
+                        const bulb = document.createElement('div');
+                        bulb.className = 'christmas-light-bulb ' + colorClasses[i % colorClasses.length];
+                        bulb.style.animationDelay = (Math.random() * 1.5).toFixed(2) + 's';
+                        lightsBar.appendChild(bulb);
+                    }
+                }
+
+                // --- 2. Inyectar Gorrito de Navidad en los Logos ---
+                const santaHatSVG = `
+                    <svg class="santa-hat-svg" viewBox="0 0 100 85" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                            <linearGradient id="hatRed" x1="0" y1="0" x2="1" y2="1">
+                                <stop offset="0%" stop-color="#ff3b4e"/>
+                                <stop offset="55%" stop-color="#d90429"/>
+                                <stop offset="100%" stop-color="#7a0010"/>
+                            </linearGradient>
+                            <filter id="hatGlow" x="-20%" y="-20%" width="140%" height="140%">
+                                <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="rgba(0,0,0,0.5)"/>
+                            </filter>
+                        </defs>
+                        <path d="M 20 60 C 20 38 42 16 66 12 C 78 10 90 20 92 34 C 94 44 88 54 84 60 Z" fill="url(#hatRed)" filter="url(#hatGlow)"/>
+                        <path d="M 52 32 C 68 36 82 44 86 58 C 76 52 64 46 44 38 Z" fill="rgba(0,0,0,0.2)"/>
+                        <circle cx="94" cy="34" r="9" fill="#ffffff" filter="url(#hatGlow)"/>
+                        <circle cx="92" cy="32" r="7" fill="#f8f9fa"/>
+                        <rect x="12" y="56" width="76" height="18" rx="9" fill="#ffffff" filter="url(#hatGlow)"/>
+                        <ellipse cx="22" cy="65" rx="8" ry="7" fill="#f8f9fa"/>
+                        <ellipse cx="40" cy="65" rx="9" ry="8" fill="#ffffff"/>
+                        <ellipse cx="60" cy="65" rx="9" ry="8" fill="#ffffff"/>
+                        <ellipse cx="78" cy="65" rx="8" ry="7" fill="#f8f9fa"/>
+                    </svg>
+                `;
+
+                // Gorrito en el logo de la barra superior
+                const navLogo = document.querySelector('#navbar a[href="#"]');
+                if (navLogo) {
+                    navLogo.classList.add('relative');
+                    const hatSpan = document.createElement('span');
+                    hatSpan.className = 'santa-hat';
+                    hatSpan.innerHTML = santaHatSVG;
+                    navLogo.appendChild(hatSpan);
+                }
+
+                // Gorrito en el logo del Hero Scanner
+                const heroScanner = document.querySelector('.printer-wrapper');
+                if (heroScanner) {
+                    const heroHatSpan = document.createElement('span');
+                    heroHatSpan.className = 'hero-santa-hat';
+                    heroHatSpan.innerHTML = santaHatSVG;
+                    heroScanner.appendChild(heroHatSpan);
+                }
+
+                // Toque festivo en el badge del hero
+                const heroBadge = document.querySelector('header .inline-block');
+                if (heroBadge) {
+                    heroBadge.classList.add('holiday-badge');
+                    const badgeContent = heroBadge.querySelector('span');
+                    if (badgeContent) {
+                        badgeContent.innerHTML = '<span class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span> ✨ Especial Fin de Año • Calidad de impresión premium 🎄';
+                    }
+                }
+
+                // --- 3. Sistema de Nieve Canvas 60fps Ultra-Liviano ---
+                const canvas = document.getElementById('navidad-snow-canvas');
+                if (!canvas) return;
+                const ctx = canvas.getContext('2d');
+                let width = (canvas.width = window.innerWidth);
+                let height = (canvas.height = window.innerHeight);
+
+                let isSnowActive = localStorage.getItem('impression_snow_active') !== 'false';
+                let animationFrameId = null;
+
+                const flakeCount = window.innerWidth < 768 ? 32 : 70;
+                const flakes = [];
+
+                for (let i = 0; i < flakeCount; i++) {
+                    flakes.push({
+                        x: Math.random() * width,
+                        y: Math.random() * height,
+                        radius: Math.random() * 2.2 + 0.8,
+                        density: Math.random() * flakeCount,
+                        alpha: Math.random() * 0.6 + 0.25,
+                        speedY: Math.random() * 1.2 + 0.5,
+                        speedX: Math.random() * 0.6 - 0.3
+                    });
+                }
+
+                let angle = 0;
+
+                function renderSnow() {
+                    if (!isSnowActive) return;
+                    ctx.clearRect(0, 0, width, height);
+
+                    angle += 0.01;
+                    for (let i = 0; i < flakes.length; i++) {
+                        const f = flakes[i];
+                        ctx.beginPath();
+                        ctx.arc(f.x, f.y, f.radius, 0, Math.PI * 2, false);
+                        ctx.fillStyle = `rgba(255, 255, 255, ${f.alpha})`;
+                        ctx.fill();
+
+                        f.y += f.speedY;
+                        f.x += Math.sin(angle + f.density) * 0.8 + f.speedX;
+
+                        // Reiniciar cuando sale de la pantalla
+                        if (f.y > height) {
+                            f.y = -10;
+                            f.x = Math.random() * width;
+                        }
+                        if (f.x > width + 10) {
+                            f.x = -10;
+                        } else if (f.x < -10) {
+                            f.x = width + 10;
+                        }
+                    }
+
+                    animationFrameId = requestAnimationFrame(renderSnow);
+                }
+
+                function startSnow() {
+                    if (!animationFrameId && isSnowActive) {
+                        canvas.style.opacity = '1';
+                        renderSnow();
+                    }
+                }
+
+                function stopSnow() {
+                    if (animationFrameId) {
+                        cancelAnimationFrame(animationFrameId);
+                        animationFrameId = null;
+                    }
+                    ctx.clearRect(0, 0, width, height);
+                    canvas.style.opacity = '0';
+                }
+
+                if (isSnowActive) {
+                    startSnow();
+                } else {
+                    canvas.style.opacity = '0';
+                }
+
+                // Ajustar al cambiar tamaño de pantalla
+                window.addEventListener('resize', () => {
+                    width = canvas.width = window.innerWidth;
+                    height = canvas.height = window.innerHeight;
+                });
+
+                // Pausar si el usuario cambia de pestaña para no consumir batería
+                document.addEventListener('visibilitychange', () => {
+                    if (document.hidden) {
+                        if (animationFrameId) {
+                            cancelAnimationFrame(animationFrameId);
+                            animationFrameId = null;
+                        }
+                    } else if (isSnowActive) {
+                        startSnow();
+                    }
+                });
+
+                // --- 4. Control de Botón Nieve ON / OFF ---
+                const toggleBtn = document.getElementById('btn-toggle-snow');
+                const snowIcon = document.getElementById('snow-status-icon');
+                const snowText = document.getElementById('snow-status-text');
+
+                function updateButtonUI() {
+                    if (isSnowActive) {
+                        snowIcon.innerText = '❄️';
+                        snowText.innerText = 'Nieve: ON';
+                        toggleBtn.style.color = '#ffffff';
+                    } else {
+                        snowIcon.innerText = '⏸️';
+                        snowText.innerText = 'Nieve: OFF';
+                        toggleBtn.style.color = '#9ca3af';
+                    }
+                }
+                updateButtonUI();
+
+                if (toggleBtn) {
+                    toggleBtn.addEventListener('click', () => {
+                        isSnowActive = !isSnowActive;
+                        localStorage.setItem('impression_snow_active', isSnowActive ? 'true' : 'false');
+                        updateButtonUI();
+                        if (isSnowActive) {
+                            startSnow();
+                        } else {
+                            stopSnow();
+                        }
+                    });
+                }
+            })();
+        </script>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- TEMA NAVIDEÑO OFICIAL IMPRESSION (ELEMENTOS Y SCRIPT)                      -->
+    <!-- (Para desactivar tras la temporada: eliminar o comentar este bloque)       -->
+    <!-- ========================================================================= -->
+    <div id="bloque-navidad">
+        <!-- Guirnalda de luces navideñas -->
+        <div id="christmas-lights-bar" class="christmas-lights"></div>
+
+        <!-- Canvas de caída de nieve -->
+        <canvas id="navidad-snow-canvas"></canvas>
+
+        <!-- Cápsula festiva flotante -->
+        <div id="navidad-capsula" title="Clic para ver el saludo navideño">
+            <span class="text-xl animate-pulse" title="¡Feliz Navidad!">🎄</span>
+            <div class="flex flex-col leading-tight">
+                <span class="text-[11px] font-bold tracking-wide text-yellow-300">Temporada Navideña</span>
+                <span class="text-[9px] text-gray-300 font-sans">Corporativo Impression</span>
+            </div>
+            <button id="btn-toggle-snow" class="btn-toggle-snow" title="Activar o desactivar efecto de nieve">
+                <span id="snow-status-icon">❄️</span>
+                <span id="snow-status-text">Nieve: ON</span>
+            </button>
+        </div>
+
+        <script id="script-navidad">
+            (function() {
+                // --- 1. Generar Luces Navideñas en la parte superior ---
+                const lightsBar = document.getElementById('christmas-lights-bar');
+                if (lightsBar) {
+                    const colorClasses = ['bulb-gold', 'bulb-red', 'bulb-green', 'bulb-blue', 'bulb-pink'];
+                    const count = Math.max(16, Math.floor(window.innerWidth / 45));
+                    for (let i = 0; i < count; i++) {
+                        const bulb = document.createElement('div');
+                        bulb.className = 'christmas-light-bulb ' + colorClasses[i % colorClasses.length];
+                        bulb.style.animationDelay = (Math.random() * 1.5).toFixed(2) + 's';
+                        lightsBar.appendChild(bulb);
+                    }
+                }
+
+                // --- 2. Inyectar Gorrito de Navidad en los Logos ---
+                const santaHatSVG = `
+                    <svg class="santa-hat-svg" viewBox="0 0 100 85" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                            <linearGradient id="hatRed" x1="0" y1="0" x2="1" y2="1">
+                                <stop offset="0%" stop-color="#ff3b4e"/>
+                                <stop offset="55%" stop-color="#d90429"/>
+                                <stop offset="100%" stop-color="#7a0010"/>
+                            </linearGradient>
+                            <filter id="hatGlow" x="-20%" y="-20%" width="140%" height="140%">
+                                <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="rgba(0,0,0,0.5)"/>
+                            </filter>
+                        </defs>
+                        <path d="M 20 60 C 20 38 42 16 66 12 C 78 10 90 20 92 34 C 94 44 88 54 84 60 Z" fill="url(#hatRed)" filter="url(#hatGlow)"/>
+                        <path d="M 52 32 C 68 36 82 44 86 58 C 76 52 64 46 44 38 Z" fill="rgba(0,0,0,0.2)"/>
+                        <circle cx="94" cy="34" r="9" fill="#ffffff" filter="url(#hatGlow)"/>
+                        <circle cx="92" cy="32" r="7" fill="#f8f9fa"/>
+                        <rect x="12" y="56" width="76" height="18" rx="9" fill="#ffffff" filter="url(#hatGlow)"/>
+                        <ellipse cx="22" cy="65" rx="8" ry="7" fill="#f8f9fa"/>
+                        <ellipse cx="40" cy="65" rx="9" ry="8" fill="#ffffff"/>
+                        <ellipse cx="60" cy="65" rx="9" ry="8" fill="#ffffff"/>
+                        <ellipse cx="78" cy="65" rx="8" ry="7" fill="#f8f9fa"/>
+                    </svg>
+                `;
+
+                // Gorrito en el logo de la barra superior
+                const navLogo = document.querySelector('#navbar a[href="#"]');
+                if (navLogo) {
+                    navLogo.classList.add('relative');
+                    const hatSpan = document.createElement('span');
+                    hatSpan.className = 'santa-hat';
+                    hatSpan.innerHTML = santaHatSVG;
+                    navLogo.appendChild(hatSpan);
+                }
+
+                // Gorrito en el logo del Hero Scanner
+                const heroScanner = document.querySelector('.printer-wrapper');
+                if (heroScanner) {
+                    const heroHatSpan = document.createElement('span');
+                    heroHatSpan.className = 'hero-santa-hat';
+                    heroHatSpan.innerHTML = santaHatSVG;
+                    heroScanner.appendChild(heroHatSpan);
+                }
+
+                // Toque festivo en el badge del hero
+                const heroBadge = document.querySelector('header .inline-block');
+                if (heroBadge) {
+                    heroBadge.classList.add('holiday-badge');
+                    const badgeContent = heroBadge.querySelector('span');
+                    if (badgeContent) {
+                        badgeContent.innerHTML = '<span class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span> ✨ Especial Fin de Año • Calidad de impresión premium 🎄';
+                    }
+                }
+
+                // --- 3. Inyectar Tarjeta de Saludo Navideño con Papá Noel Animado ---
+                const ctaContainer = document.querySelector('header .reveal.delay-400');
+                if (ctaContainer && !document.getElementById('navidad-card-saludo')) {
+                    const cardDiv = document.createElement('div');
+                    cardDiv.id = 'navidad-card-saludo';
+                    cardDiv.className = 'navidad-card-saludo reveal delay-400 active';
+                    cardDiv.innerHTML = `
+                        <div class="santa-anim-wrapper">
+                            <span class="sparkle sparkle-1">✨</span>
+                            <span class="sparkle sparkle-2">⭐</span>
+                            <svg viewBox="0 0 120 120" width="115" height="115" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <defs>
+                                    <linearGradient id="sRed" x1="0%" y1="0%" x2="100%" y2="100%">
+                                        <stop offset="0%" stop-color="#ff3b4e"/>
+                                        <stop offset="60%" stop-color="#d90429"/>
+                                        <stop offset="100%" stop-color="#800010"/>
+                                    </linearGradient>
+                                    <linearGradient id="sSkin" x1="0%" y1="0%" x2="0%" y2="100%">
+                                        <stop offset="0%" stop-color="#ffe0bd"/>
+                                        <stop offset="100%" stop-color="#ffd1a4"/>
+                                    </linearGradient>
+                                    <filter id="softGlow" x="-20%" y="-20%" width="140%" height="140%">
+                                        <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="rgba(0,0,0,0.4)"/>
+                                    </filter>
+                                </defs>
+
+                                <!-- Brazo saludando con animación fluida -->
+                                <g class="santa-hand-wave">
+                                    <path d="M 75 58 C 88 50, 98 42, 102 32 C 105 24, 98 18, 92 24 C 86 30, 80 44, 75 58 Z" fill="url(#sRed)"/>
+                                    <ellipse cx="98" cy="24" rx="8" ry="7" fill="#00e676" filter="url(#softGlow)"/>
+                                    <circle cx="103" cy="22" r="4" fill="#00e676"/>
+                                    <ellipse cx="90" cy="30" rx="6" ry="4" fill="#ffffff" transform="rotate(-30 90 30)"/>
+                                </g>
+
+                                <!-- Cuerpo / Torso -->
+                                <ellipse cx="60" cy="100" rx="36" ry="24" fill="url(#sRed)" filter="url(#softGlow)"/>
+                                <path d="M 32 98 Q 60 106 88 98" stroke="#1e293b" stroke-width="8" stroke-linecap="round"/>
+                                <rect x="54" y="97" width="12" height="10" rx="2" fill="#ffd700" stroke="#b45309" stroke-width="1.5"/>
+
+                                <!-- Cuello de peluche -->
+                                <ellipse cx="60" cy="78" rx="24" ry="7" fill="#ffffff"/>
+
+                                <!-- Cabeza y Piel -->
+                                <circle cx="60" cy="54" r="22" fill="url(#sSkin)" filter="url(#softGlow)"/>
+                                <ellipse cx="46" cy="56" rx="5" ry="3.5" fill="#ff8b94" opacity="0.6"/>
+                                <ellipse cx="74" cy="56" rx="5" ry="3.5" fill="#ff8b94" opacity="0.6"/>
+
+                                <!-- Ojos sonrientes con parpadeo suave -->
+                                <g class="santa-eyes">
+                                    <path d="M 44 48 Q 48 44 52 48" stroke="#1e293b" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+                                    <path d="M 68 48 Q 72 44 76 48" stroke="#1e293b" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+                                    <path d="M 43 43 Q 48 40 53 43" stroke="#ffffff" stroke-width="3" stroke-linecap="round" fill="none"/>
+                                    <path d="M 67 43 Q 72 40 77 43" stroke="#ffffff" stroke-width="3" stroke-linecap="round" fill="none"/>
+                                </g>
+
+                                <ellipse cx="60" cy="54" rx="4.5" ry="3.5" fill="#ff4d6d"/>
+
+                                <!-- Barba y Bigote -->
+                                <path d="M 38 56 C 32 66, 36 84, 46 92 C 54 98, 66 98, 74 92 C 84 84, 88 66, 82 56 C 78 64, 70 70, 60 70 C 50 70, 42 64, 38 56 Z" fill="#ffffff" filter="url(#softGlow)"/>
+                                <circle cx="48" cy="80" r="10" fill="#ffffff"/>
+                                <circle cx="60" cy="85" r="11" fill="#ffffff"/>
+                                <circle cx="72" cy="80" r="10" fill="#ffffff"/>
+
+                                <path d="M 60 58 C 52 56, 42 62, 40 68 C 48 68, 56 64, 60 60 Z" fill="#f8fafc" filter="url(#softGlow)"/>
+                                <path d="M 60 58 C 68 56, 78 62, 80 68 C 72 68, 64 64, 60 60 Z" fill="#f8fafc" filter="url(#softGlow)"/>
+                                <circle cx="60" cy="59" r="2.5" fill="#f1f5f9"/>
+
+                                <!-- Gorro Navideño -->
+                                <path d="M 39 42 C 40 22, 60 12, 78 16 C 88 18, 96 28, 97 38 C 94 42, 90 44, 84 44 Z" fill="url(#sRed)"/>
+                                <path d="M 80 20 C 92 24, 104 34, 102 46 C 96 46, 86 38, 80 28 Z" fill="url(#sRed)"/>
+                                <circle cx="103" cy="46" r="7" fill="#ffffff" filter="url(#softGlow)"/>
+                                <rect x="36" y="38" width="50" height="11" rx="5.5" fill="#ffffff" filter="url(#softGlow)"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <h4 class="saludo-title">
+                                <span>¡Felices Fiestas!</span> <span>🎄✨</span>
+                            </h4>
+                            <p class="saludo-text">
+                                &ldquo;¡Felices fiestas! Gracias por ser parte de nuestros logros este año. Que el 2027 llegue lleno de éxitos y prosperidad.&rdquo;
+                            </p>
+                            <span class="saludo-author">
+                                — Corporativo Impression 🎁
+                            </span>
+                        </div>
+                    `;
+                    ctaContainer.parentNode.insertBefore(cardDiv, ctaContainer.nextSibling);
+                }
+
+                // Clic en la cápsula flotante lleva al saludo
+                const capsula = document.getElementById('navidad-capsula');
+                if (capsula) {
+                    capsula.addEventListener('click', (e) => {
+                        if (e.target.closest('#btn-toggle-snow')) return;
+                        const card = document.getElementById('navidad-card-saludo');
+                        if (card) {
+                            card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        }
+                    });
+                }
+
+                // --- 4. Sistema de Nieve Canvas 60fps Ultra-Liviano ---
+                const canvas = document.getElementById('navidad-snow-canvas');
+                if (!canvas) return;
+                const ctx = canvas.getContext('2d');
+                let width = (canvas.width = window.innerWidth);
+                let height = (canvas.height = window.innerHeight);
+
+                let isSnowActive = localStorage.getItem('impression_snow_active') !== 'false';
+                let animationFrameId = null;
+
+                const flakeCount = window.innerWidth < 768 ? 32 : 70;
+                const flakes = [];
+
+                for (let i = 0; i < flakeCount; i++) {
+                    flakes.push({
+                        x: Math.random() * width,
+                        y: Math.random() * height,
+                        radius: Math.random() * 2.2 + 0.8,
+                        density: Math.random() * flakeCount,
+                        alpha: Math.random() * 0.6 + 0.25,
+                        speedY: Math.random() * 1.2 + 0.5,
+                        speedX: Math.random() * 0.6 - 0.3
+                    });
+                }
+
+                let angle = 0;
+
+                function renderSnow() {
+                    if (!isSnowActive) return;
+                    ctx.clearRect(0, 0, width, height);
+
+                    angle += 0.01;
+                    for (let i = 0; i < flakes.length; i++) {
+                        const f = flakes[i];
+                        ctx.beginPath();
+                        ctx.arc(f.x, f.y, f.radius, 0, Math.PI * 2, false);
+                        ctx.fillStyle = `rgba(255, 255, 255, ${f.alpha})`;
+                        ctx.fill();
+
+                        f.y += f.speedY;
+                        f.x += Math.sin(angle + f.density) * 0.8 + f.speedX;
+
+                        if (f.y > height) {
+                            f.y = -10;
+                            f.x = Math.random() * width;
+                        }
+                        if (f.x > width + 10) {
+                            f.x = -10;
+                        } else if (f.x < -10) {
+                            f.x = width + 10;
+                        }
+                    }
+
+                    animationFrameId = requestAnimationFrame(renderSnow);
+                }
+
+                function startSnow() {
+                    if (!animationFrameId && isSnowActive) {
+                        canvas.style.opacity = '1';
+                        renderSnow();
+                    }
+                }
+
+                function stopSnow() {
+                    if (animationFrameId) {
+                        cancelAnimationFrame(animationFrameId);
+                        animationFrameId = null;
+                    }
+                    ctx.clearRect(0, 0, width, height);
+                    canvas.style.opacity = '0';
+                }
+
+                if (isSnowActive) {
+                    startSnow();
+                } else {
+                    canvas.style.opacity = '0';
+                }
+
+                window.addEventListener('resize', () => {
+                    width = canvas.width = window.innerWidth;
+                    height = canvas.height = window.innerHeight;
+                });
+
+                document.addEventListener('visibilitychange', () => {
+                    if (document.hidden) {
+                        if (animationFrameId) {
+                            cancelAnimationFrame(animationFrameId);
+                            animationFrameId = null;
+                        }
+                    } else if (isSnowActive) {
+                        startSnow();
+                    }
+                });
+
+                // --- 5. Control de Botón Nieve ON / OFF ---
+                const toggleBtn = document.getElementById('btn-toggle-snow');
+                const snowIcon = document.getElementById('snow-status-icon');
+                const snowText = document.getElementById('snow-status-text');
+
+                function updateButtonUI() {
+                    if (isSnowActive) {
+                        snowIcon.innerText = '❄️';
+                        snowText.innerText = 'Nieve: ON';
+                        toggleBtn.style.color = '#ffffff';
+                    } else {
+                        snowIcon.innerText = '⏸️';
+                        snowText.innerText = 'Nieve: OFF';
+                        toggleBtn.style.color = '#9ca3af';
+                    }
+                }
+                updateButtonUI();
+
+                if (toggleBtn) {
+                    toggleBtn.addEventListener('click', (e) => {
+                        e.stopPropagation();
                         isSnowActive = !isSnowActive;
                         localStorage.setItem('impression_snow_active', isSnowActive ? 'true' : 'false');
                         updateButtonUI();
