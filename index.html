@@ -222,13 +222,24 @@
 
     </style>
 
-
     <!-- INICIO TEMA NAVIDEÑO CSS -->
     <!-- ========================================================================= -->
     <!-- TEMA NAVIDEÑO OFICIAL IMPRESSION (CSS TEMPORAL)                           -->
     <!-- (Para desactivar tras la temporada: eliminar desde INICIO hasta FIN)      -->
     <!-- ========================================================================= -->
     <style id="tema-navidad-css">
+        /* Dar espacio suficiente debajo del navbar fijo para no cortar el badge superior */
+        header.min-h-screen {
+            padding-top: 8.5rem !important;
+            padding-bottom: 3.5rem !important;
+        }
+        @media (max-width: 768px) {
+            header.min-h-screen {
+                padding-top: 7.5rem !important;
+                padding-bottom: 3rem !important;
+            }
+        }
+
         /* Luces navideñas colgantes en el borde superior */
         .christmas-lights {
             position: fixed;
@@ -291,7 +302,7 @@
         /* Gorrito Navideño en el Logo de Navegación (alineado sobre la letra I) */
         .santa-hat {
             position: absolute;
-            top: 2px;
+            top: -4px;
             left: 9.8%;
             width: 22px;
             height: 19px;
@@ -303,7 +314,7 @@
         }
         @media (max-width: 768px) {
             .santa-hat {
-                top: 1px;
+                top: -4px;
                 left: 9.8%;
                 width: 19px;
                 height: 16px;
@@ -313,7 +324,7 @@
         /* Gorrito Navideño en el Logo del Hero Scanner (alineado sobre la letra I) */
         .hero-santa-hat {
             position: absolute;
-            top: 30px;
+            top: 28px;
             left: 9.8%;
             width: 48px;
             height: 42px;
@@ -325,7 +336,7 @@
         }
         @media (max-width: 768px) {
             .hero-santa-hat {
-                top: 22px;
+                top: 20px;
                 left: 9.8%;
                 width: 36px;
                 height: 32px;
@@ -333,7 +344,7 @@
         }
         @media (max-width: 480px) {
             .hero-santa-hat {
-                top: 15px;
+                top: 14px;
                 left: 9.6%;
                 width: 28px;
                 height: 25px;
@@ -403,8 +414,8 @@
         .navidad-card-saludo {
             max-width: 680px;
             width: 100%;
-            margin: 44px auto 10px auto;
-            padding: 26px 30px;
+            margin: 32px auto 0 auto;
+            padding: 22px 26px;
             border-radius: 28px;
             background: linear-gradient(135deg, rgba(140, 20, 40, 0.32) 0%, rgba(10, 15, 12, 0.78) 50%, rgba(20, 80, 45, 0.28) 100%);
             backdrop-filter: blur(20px);
@@ -429,8 +440,8 @@
             .navidad-card-saludo {
                 flex-direction: column;
                 text-align: center;
-                padding: 22px 18px;
-                gap: 16px;
+                padding: 20px 18px;
+                gap: 14px;
             }
         }
 
@@ -457,8 +468,8 @@
 
         /* Animaciones del Papá Noel */
         .santa-anim-wrapper {
-            width: 115px;
-            height: 115px;
+            width: 110px;
+            height: 110px;
             flex-shrink: 0;
             position: relative;
             display: flex;
@@ -511,7 +522,7 @@
         }
 
         .saludo-title {
-            font-size: 21px;
+            font-size: 20px;
             font-weight: 800;
             color: #ffd700;
             margin: 0 0 6px 0;
@@ -538,7 +549,7 @@
 
         .saludo-author {
             display: inline-block;
-            margin-top: 10px;
+            margin-top: 8px;
             font-size: 11px;
             font-weight: 700;
             text-transform: uppercase;
@@ -1690,7 +1701,7 @@
                         <div class="santa-anim-wrapper">
                             <span class="sparkle sparkle-1">✨</span>
                             <span class="sparkle sparkle-2">⭐</span>
-                            <svg viewBox="0 0 120 120" width="115" height="115" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <svg viewBox="0 0 120 120" width="110" height="110" fill="none" xmlns="http://www.w3.org/2000/svg">
                                 <defs>
                                     <linearGradient id="sRed" x1="0%" y1="0%" x2="100%" y2="100%">
                                         <stop offset="0%" stop-color="#ff3b4e"/>
