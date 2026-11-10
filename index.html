@@ -228,63 +228,80 @@
     <!-- (Para desactivar tras la temporada: eliminar desde INICIO hasta FIN)      -->
     <!-- ========================================================================= -->
     <style id="tema-navidad-css">
-        /* Dar espacio suficiente debajo del navbar fijo para no cortar el badge superior */
+        /* Bajar ligeramente el navbar y dar espacio al hero para la guirnalda realista */
+        #navbar {
+            padding-top: 2.3rem !important;
+        }
         header.min-h-screen {
-            padding-top: 8.5rem !important;
+            padding-top: 9.8rem !important;
             padding-bottom: 3.5rem !important;
         }
         @media (max-width: 768px) {
+            #navbar {
+                padding-top: 1.85rem !important;
+            }
             header.min-h-screen {
-                padding-top: 7.5rem !important;
+                padding-top: 8.5rem !important;
                 padding-bottom: 3rem !important;
             }
         }
 
-        /* Luces navideñas colgantes en el borde superior */
+        /* Guirnalda realista de pino navideño con luces animadas */
         .christmas-lights {
             position: fixed;
             top: 0;
             left: 0;
             right: 0;
-            height: 16px;
+            height: 54px;
             z-index: 52;
             pointer-events: none;
-            display: flex;
-            justify-content: space-around;
-            align-items: flex-start;
-            padding: 0 8px;
+            background-image: url('guirnalda_navidad.png');
+            background-repeat: repeat-x;
+            background-position: top center;
+            background-size: auto 50px;
+            filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.85));
             overflow: hidden;
-            background: linear-gradient(to bottom, rgba(0,0,0,0.6), transparent);
+        }
+        @media (max-width: 768px) {
+            .christmas-lights {
+                height: 40px;
+                background-size: auto 38px;
+            }
         }
 
         .christmas-light-bulb {
-            width: 8px;
-            height: 12px;
-            border-radius: 50% 50% 45% 45%;
-            position: relative;
-            animation: lightTwinkle 1.8s infinite alternate ease-in-out;
-        }
-        .christmas-light-bulb::before {
-            content: '';
             position: absolute;
-            top: -3px;
-            left: 2px;
-            width: 4px;
-            height: 3px;
-            background: #1a3320;
-            border-radius: 1px;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            animation: lightTwinkle 1.9s infinite alternate ease-in-out;
         }
 
-        .bulb-gold { background: #ffd700; box-shadow: 0 0 8px #ffd700, 0 0 16px rgba(255, 215, 0, 0.5); animation-delay: 0.1s; }
-        .bulb-red { background: #ff2a4b; box-shadow: 0 0 8px #ff2a4b, 0 0 16px rgba(255, 42, 75, 0.5); animation-delay: 0.4s; }
-        .bulb-green { background: #00e676; box-shadow: 0 0 8px #00e676, 0 0 16px rgba(0, 230, 118, 0.5); animation-delay: 0.7s; }
-        .bulb-blue { background: #00e5ff; box-shadow: 0 0 8px #00e5ff, 0 0 16px rgba(0, 229, 255, 0.5); animation-delay: 0.25s; }
-        .bulb-pink { background: #ff007f; box-shadow: 0 0 8px #ff007f, 0 0 16px rgba(255, 0, 127, 0.5); animation-delay: 0.55s; }
+        .bulb-gold {
+            background: radial-gradient(circle, #fffbeb 15%, #ffd700 55%, transparent 100%);
+            box-shadow: 0 0 8px 2px #ffd700, 0 0 18px 4px rgba(255, 215, 0, 0.55);
+        }
+        .bulb-red {
+            background: radial-gradient(circle, #ffe4e6 15%, #ff2a4b 55%, transparent 100%);
+            box-shadow: 0 0 8px 2px #ff2a4b, 0 0 18px 4px rgba(255, 42, 75, 0.55);
+        }
+        .bulb-green {
+            background: radial-gradient(circle, #ecfdf5 15%, #00e676 55%, transparent 100%);
+            box-shadow: 0 0 8px 2px #00e676, 0 0 18px 4px rgba(0, 230, 118, 0.5);
+        }
+        .bulb-blue {
+            background: radial-gradient(circle, #ecfeff 15%, #00e5ff 55%, transparent 100%);
+            box-shadow: 0 0 8px 2px #00e5ff, 0 0 18px 4px rgba(0, 229, 255, 0.5);
+        }
+        .bulb-warm {
+            background: radial-gradient(circle, #ffffff 20%, #fde68a 60%, transparent 100%);
+            box-shadow: 0 0 9px 2px #fde68a, 0 0 20px 5px rgba(253, 230, 138, 0.6);
+        }
 
         @keyframes lightTwinkle {
-            0% { opacity: 0.35; transform: scale(0.9); }
-            50% { opacity: 1; transform: scale(1.15); }
-            100% { opacity: 0.55; transform: scale(0.95); }
+            0%   { opacity: 0.28; transform: scale(0.8); }
+            50%  { opacity: 1;    transform: scale(1.3); }
+            100% { opacity: 0.48; transform: scale(0.95); }
         }
 
         /* Canvas de Nieve Suave y Elegante */
@@ -1601,7 +1618,7 @@
     <!-- (Para desactivar tras la temporada: eliminar desde INICIO hasta FIN)      -->
     <!-- ========================================================================= -->
     <div id="bloque-navidad">
-        <!-- Guirnalda de luces navideñas -->
+        <!-- Guirnalda realista de pino navideño con luces -->
         <div id="christmas-lights-bar" class="christmas-lights"></div>
 
         <!-- Canvas de caída de nieve -->
@@ -1622,15 +1639,22 @@
 
         <script id="script-navidad">
             (function() {
-                // --- 1. Generar Luces Navideñas en la parte superior ---
+                // --- 1. Poblar bombillos luminosos entretejidos en la guirnalda de pino ---
                 const lightsBar = document.getElementById('christmas-lights-bar');
                 if (lightsBar && lightsBar.children.length === 0) {
-                    const colorClasses = ['bulb-gold', 'bulb-red', 'bulb-green', 'bulb-blue', 'bulb-pink'];
-                    const count = Math.max(16, Math.floor(window.innerWidth / 45));
+                    const colorClasses = ['bulb-warm', 'bulb-gold', 'bulb-red', 'bulb-warm', 'bulb-green', 'bulb-blue'];
+                    const count = Math.max(18, Math.floor(window.innerWidth / 42));
+                    const isMob = window.innerWidth < 768;
                     for (let i = 0; i < count; i++) {
                         const bulb = document.createElement('div');
                         bulb.className = 'christmas-light-bulb ' + colorClasses[i % colorClasses.length];
-                        bulb.style.animationDelay = (Math.random() * 1.5).toFixed(2) + 's';
+                        const pct = ((i + 0.5) / count) * 100;
+                        // Onda sinusoidal suave simulando serie luminosa sobre las ramas
+                        const yBase = isMob ? 10 : 12;
+                        const yWave = Math.sin(i * 1.15) * (isMob ? 8 : 11);
+                        bulb.style.left = pct.toFixed(2) + '%';
+                        bulb.style.top = (yBase + 10 + yWave).toFixed(1) + 'px';
+                        bulb.style.animationDelay = ((i % 6) * 0.28 + Math.random() * 0.5).toFixed(2) + 's';
                         lightsBar.appendChild(bulb);
                     }
                 }
@@ -1660,7 +1684,6 @@
                     </svg>
                 `;
 
-                // Gorrito en el logo de la barra superior (solo si no existe)
                 const navLogo = document.querySelector('#navbar a[href="#"]');
                 if (navLogo && !document.getElementById('nav-santa-hat-el')) {
                     navLogo.classList.add('relative');
@@ -1671,7 +1694,6 @@
                     navLogo.appendChild(hatSpan);
                 }
 
-                // Gorrito en el logo del Hero Scanner (solo si no existe)
                 const heroScanner = document.querySelector('.printer-wrapper');
                 if (heroScanner && !document.getElementById('hero-santa-hat-el')) {
                     const heroHatSpan = document.createElement('span');
@@ -1716,49 +1738,33 @@
                                         <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="rgba(0,0,0,0.4)"/>
                                     </filter>
                                 </defs>
-
-                                <!-- Brazo saludando con animación fluida -->
                                 <g class="santa-hand-wave">
                                     <path d="M 75 58 C 88 50, 98 42, 102 32 C 105 24, 98 18, 92 24 C 86 30, 80 44, 75 58 Z" fill="url(#sRed)"/>
                                     <ellipse cx="98" cy="24" rx="8" ry="7" fill="#00e676" filter="url(#softGlow)"/>
                                     <circle cx="103" cy="22" r="4" fill="#00e676"/>
                                     <ellipse cx="90" cy="30" rx="6" ry="4" fill="#ffffff" transform="rotate(-30 90 30)"/>
                                 </g>
-
-                                <!-- Cuerpo / Torso -->
                                 <ellipse cx="60" cy="100" rx="36" ry="24" fill="url(#sRed)" filter="url(#softGlow)"/>
                                 <path d="M 32 98 Q 60 106 88 98" stroke="#1e293b" stroke-width="8" stroke-linecap="round"/>
                                 <rect x="54" y="97" width="12" height="10" rx="2" fill="#ffd700" stroke="#b45309" stroke-width="1.5"/>
-
-                                <!-- Cuello de peluche -->
                                 <ellipse cx="60" cy="78" rx="24" ry="7" fill="#ffffff"/>
-
-                                <!-- Cabeza y Piel -->
                                 <circle cx="60" cy="54" r="22" fill="url(#sSkin)" filter="url(#softGlow)"/>
                                 <ellipse cx="46" cy="56" rx="5" ry="3.5" fill="#ff8b94" opacity="0.6"/>
                                 <ellipse cx="74" cy="56" rx="5" ry="3.5" fill="#ff8b94" opacity="0.6"/>
-
-                                <!-- Ojos sonrientes con parpadeo suave -->
                                 <g class="santa-eyes">
                                     <path d="M 44 48 Q 48 44 52 48" stroke="#1e293b" stroke-width="2.5" stroke-linecap="round" fill="none"/>
                                     <path d="M 68 48 Q 72 44 76 48" stroke="#1e293b" stroke-width="2.5" stroke-linecap="round" fill="none"/>
                                     <path d="M 43 43 Q 48 40 53 43" stroke="#ffffff" stroke-width="3" stroke-linecap="round" fill="none"/>
                                     <path d="M 67 43 Q 72 40 77 43" stroke="#ffffff" stroke-width="3" stroke-linecap="round" fill="none"/>
                                 </g>
-
                                 <ellipse cx="60" cy="54" rx="4.5" ry="3.5" fill="#ff4d6d"/>
-
-                                <!-- Barba y Bigote -->
                                 <path d="M 38 56 C 32 66, 36 84, 46 92 C 54 98, 66 98, 74 92 C 84 84, 88 66, 82 56 C 78 64, 70 70, 60 70 C 50 70, 42 64, 38 56 Z" fill="#ffffff" filter="url(#softGlow)"/>
                                 <circle cx="48" cy="80" r="10" fill="#ffffff"/>
                                 <circle cx="60" cy="85" r="11" fill="#ffffff"/>
                                 <circle cx="72" cy="80" r="10" fill="#ffffff"/>
-
                                 <path d="M 60 58 C 52 56, 42 62, 40 68 C 48 68, 56 64, 60 60 Z" fill="#f8fafc" filter="url(#softGlow)"/>
                                 <path d="M 60 58 C 68 56, 78 62, 80 68 C 72 68, 64 64, 60 60 Z" fill="#f8fafc" filter="url(#softGlow)"/>
                                 <circle cx="60" cy="59" r="2.5" fill="#f1f5f9"/>
-
-                                <!-- Gorro Navideño -->
                                 <path d="M 39 42 C 40 22, 60 12, 78 16 C 88 18, 96 28, 97 38 C 94 42, 90 44, 84 44 Z" fill="url(#sRed)"/>
                                 <path d="M 80 20 C 92 24, 104 34, 102 46 C 96 46, 86 38, 80 28 Z" fill="url(#sRed)"/>
                                 <circle cx="103" cy="46" r="7" fill="#ffffff" filter="url(#softGlow)"/>

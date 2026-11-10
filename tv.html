@@ -138,51 +138,41 @@
             background: linear-gradient(90deg, transparent, #00e676, #ffd700, #ff2a4b, transparent) !important;
         }
 
-        /* Luces navideñas colgantes arriba del TV (escala 2160x4096) */
+        /* Guirnalda realista de pino navideño con luces arriba del TV (escala 2160x4096) */
         .tv-christmas-lights {
             position: absolute;
             top: 0;
             left: 0;
             right: 0;
-            height: 54px;
+            height: 156px;
             z-index: 25;
             pointer-events: none;
-            display: flex;
-            justify-content: space-around;
-            align-items: flex-start;
-            padding: 0 30px;
+            background-image: url('guirnalda_navidad.png');
+            background-repeat: repeat-x;
+            background-position: top center;
+            background-size: auto 150px;
+            filter: drop-shadow(0 12px 24px rgba(0, 0, 0, 0.85));
             overflow: hidden;
-            background: linear-gradient(to bottom, rgba(0, 0, 0, 0.72), transparent);
         }
 
         .tv-light-bulb {
-            width: 22px;
-            height: 34px;
-            border-radius: 50% 50% 45% 45%;
-            position: relative;
-            animation: tvLightTwinkle 1.8s infinite alternate ease-in-out;
-        }
-        .tv-light-bulb::before {
-            content: '';
             position: absolute;
-            top: -8px;
-            left: 6px;
-            width: 10px;
-            height: 9px;
-            background: #1a3320;
-            border-radius: 2px;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            animation: tvLightTwinkle 1.9s infinite alternate ease-in-out;
         }
 
-        .tv-bulb-gold  { background: #ffd700; box-shadow: 0 0 22px #ffd700, 0 0 44px rgba(255, 215, 0, 0.6); }
-        .tv-bulb-red   { background: #ff2a4b; box-shadow: 0 0 22px #ff2a4b, 0 0 44px rgba(255, 42, 75, 0.6); }
-        .tv-bulb-green { background: #00e676; box-shadow: 0 0 22px #00e676, 0 0 44px rgba(0, 230, 118, 0.6); }
-        .tv-bulb-blue  { background: #00e5ff; box-shadow: 0 0 22px #00e5ff, 0 0 44px rgba(0, 229, 255, 0.6); }
-        .tv-bulb-pink  { background: #ff007f; box-shadow: 0 0 22px #ff007f, 0 0 44px rgba(255, 0, 127, 0.6); }
+        .tv-bulb-warm  { background: radial-gradient(circle, #ffffff 20%, #fde68a 60%, transparent 100%); box-shadow: 0 0 22px 6px #fde68a, 0 0 46px 12px rgba(253, 230, 138, 0.6); }
+        .tv-bulb-gold  { background: radial-gradient(circle, #fffbeb 15%, #ffd700 55%, transparent 100%); box-shadow: 0 0 20px 5px #ffd700, 0 0 44px 10px rgba(255, 215, 0, 0.55); }
+        .tv-bulb-red   { background: radial-gradient(circle, #ffe4e6 15%, #ff2a4b 55%, transparent 100%); box-shadow: 0 0 20px 5px #ff2a4b, 0 0 44px 10px rgba(255, 42, 75, 0.55); }
+        .tv-bulb-green { background: radial-gradient(circle, #ecfdf5 15%, #00e676 55%, transparent 100%); box-shadow: 0 0 20px 5px #00e676, 0 0 44px 10px rgba(0, 230, 118, 0.5); }
+        .tv-bulb-blue  { background: radial-gradient(circle, #ecfeff 15%, #00e5ff 55%, transparent 100%); box-shadow: 0 0 20px 5px #00e5ff, 0 0 44px 10px rgba(0, 229, 255, 0.5); }
 
         @keyframes tvLightTwinkle {
-            0%   { opacity: 0.35; transform: scale(0.9); }
-            50%  { opacity: 1;    transform: scale(1.15); }
-            100% { opacity: 0.55; transform: scale(0.95); }
+            0%   { opacity: 0.28; transform: scale(0.8); }
+            50%  { opacity: 1;    transform: scale(1.3); }
+            100% { opacity: 0.48; transform: scale(0.95); }
         }
 
         /* Canvas de nieve liviano sobre la transmisión */
@@ -365,10 +355,10 @@
             50% { transform: scale(1.22); }
         }
 
-        /* Controles discretos de audio navideño arriba a la derecha */
+        /* Controles discretos de audio navideño arriba a la derecha (debajo de la guirnalda) */
         #tv-bgm-controls {
             position: absolute;
-            top: 76px;
+            top: 168px;
             right: 54px;
             z-index: 999;
             display: flex;
@@ -626,7 +616,8 @@
             if (currentItem.tipo === 'video') {
                 const _navidadBgm = !!document.getElementById('bloque-navidad-tv');
                 if (_navidadBgm) { unmuteBtn.style.display = 'none'; currentEl.muted = true; currentEl.volume = 0; } else { const _navidadBgm = !!document.getElementById('bloque-navidad-tv');
-                if (_navidadBgm) { unmuteBtn.style.display = 'none'; currentEl.muted = true; currentEl.volume = 0; } else { if(!audioEnabled) unmuteBtn.style.display = 'block'; currentEl.muted = !audioEnabled; } }
+                if (_navidadBgm) { unmuteBtn.style.display = 'none'; currentEl.muted = true; currentEl.volume = 0; } else { const _navidadBgm = !!document.getElementById('bloque-navidad-tv');
+                if (_navidadBgm) { unmuteBtn.style.display = 'none'; currentEl.muted = true; currentEl.volume = 0; } else { if(!audioEnabled) unmuteBtn.style.display = 'block'; currentEl.muted = !audioEnabled; } } }
                 
                 let playPromise = currentEl.play();
                 if (playPromise !== undefined) {
@@ -875,14 +866,19 @@
                 }
                 forceMuteAllVideos();
 
-                // --- 1. Luces Navideñas Superiores ---
+                // --- 1. Luces Navideñas entretejidas en la guirnalda de pino ---
                 const lightsBar = document.getElementById('tv-christmas-lights-bar');
                 if (lightsBar && lightsBar.children.length === 0) {
-                    const colors = ['tv-bulb-gold', 'tv-bulb-red', 'tv-bulb-green', 'tv-bulb-blue', 'tv-bulb-pink'];
-                    for (let i = 0; i < 26; i++) {
+                    const colors = ['tv-bulb-warm', 'tv-bulb-gold', 'tv-bulb-red', 'tv-bulb-warm', 'tv-bulb-green', 'tv-bulb-blue'];
+                    const count = 28;
+                    for (let i = 0; i < count; i++) {
                         const bulb = document.createElement('div');
                         bulb.className = 'tv-light-bulb ' + colors[i % colors.length];
-                        bulb.style.animationDelay = ((i % 5) * 0.3 + Math.random() * 0.4).toFixed(2) + 's';
+                        const pct = ((i + 0.5) / count) * 100;
+                        const yWave = Math.sin(i * 1.15) * 32;
+                        bulb.style.left = pct.toFixed(2) + '%';
+                        bulb.style.top = (62 + yWave).toFixed(1) + 'px';
+                        bulb.style.animationDelay = ((i % 6) * 0.28 + Math.random() * 0.5).toFixed(2) + 's';
                         lightsBar.appendChild(bulb);
                     }
                 }
