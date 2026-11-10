@@ -324,15 +324,100 @@
             font-family: system-ui, -apple-system, sans-serif;
         }
 
+        .tv-saludo-footer {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+            margin-top: 16px;
+        }
+
         .tv-saludo-brand {
-            display: inline-block;
-            margin-top: 12px;
             font-size: 24px;
             font-weight: 800;
             letter-spacing: 4px;
             text-transform: uppercase;
             color: #ffd700;
             opacity: 0.9;
+        }
+
+        .tv-now-playing {
+            display: inline-flex;
+            align-items: center;
+            gap: 14px;
+            padding: 8px 24px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            font-size: 22px;
+            font-family: system-ui, -apple-system, sans-serif;
+            font-weight: 600;
+            color: #e2e8f0;
+        }
+
+        .tv-music-note-pulse {
+            display: inline-block;
+            animation: tvMusicBounce 1.2s ease-in-out infinite;
+        }
+        @keyframes tvMusicBounce {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.22); }
+        }
+
+        /* Controles discretos de audio navideño arriba a la derecha */
+        #tv-bgm-controls {
+            position: absolute;
+            top: 76px;
+            right: 54px;
+            z-index: 999;
+            display: flex;
+            align-items: center;
+            gap: 18px;
+        }
+
+        .tv-bgm-btn {
+            background: rgba(10, 12, 14, 0.65);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border: 2px solid rgba(255, 215, 0, 0.4);
+            color: #ffffff;
+            border-radius: 999px;
+            padding: 16px 28px;
+            font-size: 28px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            opacity: 0.55;
+            transition: opacity 0.3s ease, transform 0.2s ease, border-color 0.3s ease;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6);
+        }
+        .tv-bgm-btn:hover {
+            opacity: 1;
+            border-color: #ffd700;
+            transform: scale(1.04);
+        }
+
+        .tv-bgm-prompt {
+            background: rgba(140, 18, 38, 0.88);
+            border: 2px solid #ffd700;
+            color: #ffffff;
+            border-radius: 999px;
+            padding: 18px 34px;
+            font-size: 28px;
+            font-weight: 700;
+            cursor: pointer;
+            display: none;
+            align-items: center;
+            gap: 14px;
+            box-shadow: 0 10px 35px rgba(0, 0, 0, 0.8), 0 0 30px rgba(255, 215, 0, 0.35);
+            animation: tvPromptPulse 2s infinite;
+        }
+        @keyframes tvPromptPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.04); }
         }
     </style>
     <!-- FIN TEMA NAVIDEÑO TV CSS -->
@@ -382,8 +467,9 @@
         const progressBar = document.getElementById('progress-bar');
         const unmuteBtn = document.getElementById('unmute-btn');
 
-        // Permitir sonido si el usuario toca la pantalla una vez
+        // Permitir sonido si el usuario toca la pantalla una vez (deshabilitado si está activo el fondo musical navideño)
         document.body.addEventListener('click', () => {
+            if (document.getElementById('bloque-navidad-tv')) return;
             audioEnabled = true;
             unmuteBtn.style.display = 'none';
             const currentVideo = document.querySelector('video.active');
@@ -458,7 +544,8 @@
                     el = document.createElement('video');
                     el.src = item.url;
                     el.preload = 'auto'; // Obliga al navegador a descargar el video en segundo plano
-                    el.muted = !audioEnabled;
+                    el.muted = document.getElementById('bloque-navidad-tv') ? true : !audioEnabled;
+                    if (document.getElementById('bloque-navidad-tv')) { el.defaultMuted = true; el.volume = 0; }
                     el.playsInline = true;
                     el.loop = false; // Queremos que termine para pasar al siguiente
                     
@@ -537,8 +624,9 @@
             progressBar.style.width = '0%';
 
             if (currentItem.tipo === 'video') {
-                if(!audioEnabled) unmuteBtn.style.display = 'block';
-                currentEl.muted = !audioEnabled;
+                const _navidadBgm = !!document.getElementById('bloque-navidad-tv');
+                if (_navidadBgm) { unmuteBtn.style.display = 'none'; currentEl.muted = true; currentEl.volume = 0; } else { const _navidadBgm = !!document.getElementById('bloque-navidad-tv');
+                if (_navidadBgm) { unmuteBtn.style.display = 'none'; currentEl.muted = true; currentEl.volume = 0; } else { if(!audioEnabled) unmuteBtn.style.display = 'block'; currentEl.muted = !audioEnabled; } }
                 
                 let playPromise = currentEl.play();
                 if (playPromise !== undefined) {
@@ -689,6 +777,20 @@
         <!-- Nieve sutil sobre la transmisión (resolución optimizada para Smart TV 24/7) -->
         <canvas id="tv-snow-canvas" width="720" height="1365"></canvas>
 
+        <!-- Controles discretos de música navideña -->
+        <div id="tv-bgm-controls">
+            <button id="tv-bgm-prompt" class="tv-bgm-prompt" title="Toca para activar la música navideña">
+                <span>🔊</span>
+                <span>Toca para activar música navideña</span>
+            </button>
+            <button id="tv-bgm-toggle" class="tv-bgm-btn" title="Silenciar o activar música navideña">
+                <span id="tv-bgm-icon">🔊</span>
+            </button>
+            <button id="tv-bgm-next" class="tv-bgm-btn" title="Siguiente tema navideño">
+                <span>⏭️</span>
+            </button>
+        </div>
+
         <!-- Cintillo inferior festivo con Papá Noel animado -->
         <div id="tv-navidad-banner">
             <div class="tv-santa-anim-wrapper">
@@ -742,17 +844,37 @@
                     <rect x="36" y="38" width="50" height="11" rx="5.5" fill="#ffffff" filter="url(#tvSoftGlow)"/>
                 </svg>
             </div>
-            <div style="position: relative; z-index: 2;">
+            <div style="position: relative; z-index: 2; flex: 1;">
                 <div class="tv-saludo-title">🎄 ¡FELICES FIESTAS! ✨</div>
                 <p class="tv-saludo-text">
                     &ldquo;Gracias por ser parte de nuestros logros este año. Que el 2027 llegue lleno de éxitos y prosperidad.&rdquo;
                 </p>
-                <span class="tv-saludo-brand">— Corporativo Impression 🎁</span>
+                <div class="tv-saludo-footer">
+                    <span class="tv-saludo-brand">— Corporativo Impression 🎁</span>
+                    <div id="tv-now-playing" class="tv-now-playing">
+                        <span class="tv-music-note-pulse">🎵</span>
+                        <span id="tv-track-label">Cargando música navideña...</span>
+                    </div>
+                </div>
             </div>
         </div>
 
         <script id="script-navidad-tv">
             (function() {
+                // --- 0. Blindaje extra: asegurar que todos los videos estén en silencio ---
+                function forceMuteAllVideos() {
+                    document.querySelectorAll('video').forEach(v => {
+                        if (!v.muted) v.muted = true;
+                        if (v.volume > 0) v.volume = 0;
+                    });
+                }
+                const mediaContainer = document.getElementById('media-container');
+                if (mediaContainer) {
+                    const muteObserver = new MutationObserver(forceMuteAllVideos);
+                    muteObserver.observe(mediaContainer, { childList: true, subtree: true });
+                }
+                forceMuteAllVideos();
+
                 // --- 1. Luces Navideñas Superiores ---
                 const lightsBar = document.getElementById('tv-christmas-lights-bar');
                 if (lightsBar && lightsBar.children.length === 0) {
@@ -800,7 +922,169 @@
                     wrapper.appendChild(hat);
                 }
 
-                // --- 3. Sistema de Nieve Optimizado para TV 24/7 ---
+                // --- 3. Fondo Musical Navideño Moderno e Instrumental (10 Temas Rotando) ---
+                const christmasPlaylist = [
+                    { title: "Nouvelle Noel (Lounge)", artist: "Kevin MacLeod", url: "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Nouvelle%20Noel.mp3" },
+                    { title: "Tinsel & Mistletoe", artist: "Ahjay Stelino", url: "https://assets.mixkit.co/music/93/93.mp3" },
+                    { title: "Our Journey (Acoustic Piano)", artist: "Michael Ramir C.", url: "https://assets.mixkit.co/music/1073/1073.mp3" },
+                    { title: "Christmas Jazz", artist: "Diego Nava", url: "https://assets.mixkit.co/music/503/503.mp3" },
+                    { title: "Winter Chimes", artist: "Kevin MacLeod", url: "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Winter%20Chimes.mp3" },
+                    { title: "Holidays Melodic", artist: "Grigoriy Nuzhny", url: "https://assets.mixkit.co/music/691/691.mp3" },
+                    { title: "Forest Mist Whispers", artist: "Eugenio Mininni", url: "https://assets.mixkit.co/music/148/148.mp3" },
+                    { title: "Deck the Halls (Smooth Piano)", artist: "Kevin MacLeod", url: "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Deck%20the%20Halls%20A.mp3" },
+                    { title: "My Christmas Prayer", artist: "Michael Ramir C.", url: "https://assets.mixkit.co/music/912/912.mp3" },
+                    { title: "Winter Reflections", artist: "Kevin MacLeod", url: "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Winter%20Reflections.mp3" }
+                ];
+
+                // Mezclar orden inicial (Fisher-Yates) para que no siempre arranque igual
+                function shuffleTracks(arr) {
+                    for (let i = arr.length - 1; i > 0; i--) {
+                        const j = Math.floor(Math.random() * (i + 1));
+                        [arr[i], arr[j]] = [arr[j], arr[i]];
+                    }
+                    return arr;
+                }
+
+                let shuffledTracks = shuffleTracks([...christmasPlaylist]);
+                let trackIdx = 0;
+                const TARGET_VOLUME = 0.42; // Volumen ambiental agradable que no cansa
+                let isMusicMuted = false;
+                let musicStarted = false;
+                let fadeTimer = null;
+                let consecutiveErrors = 0;
+
+                const bgAudio = new Audio();
+                bgAudio.preload = 'auto';
+                bgAudio.volume = 0;
+
+                const trackLabel = document.getElementById('tv-track-label');
+                const promptBtn = document.getElementById('tv-bgm-prompt');
+                const toggleBtn = document.getElementById('tv-bgm-toggle');
+                const toggleIcon = document.getElementById('tv-bgm-icon');
+                const nextBtn = document.getElementById('tv-bgm-next');
+
+                function fadeInAudio() {
+                    clearInterval(fadeTimer);
+                    if (isMusicMuted) {
+                        bgAudio.volume = 0;
+                        return;
+                    }
+                    bgAudio.volume = 0;
+                    fadeTimer = setInterval(() => {
+                        if (isMusicMuted) {
+                            bgAudio.volume = 0;
+                            clearInterval(fadeTimer);
+                            return;
+                        }
+                        if (bgAudio.volume < TARGET_VOLUME - 0.03) {
+                            bgAudio.volume = Math.min(TARGET_VOLUME, bgAudio.volume + 0.03);
+                        } else {
+                            bgAudio.volume = TARGET_VOLUME;
+                            clearInterval(fadeTimer);
+                        }
+                    }, 90);
+                }
+
+                function updateTrackUI(track) {
+                    if (trackLabel && track) {
+                        trackLabel.textContent = `${track.title} — ${track.artist} (${trackIdx + 1}/${shuffledTracks.length})`;
+                    }
+                }
+
+                function playCurrentTrack() {
+                    const track = shuffledTracks[trackIdx];
+                    if (!track) return;
+                    updateTrackUI(track);
+                    bgAudio.src = track.url;
+                    bgAudio.muted = isMusicMuted;
+
+                    const playPromise = bgAudio.play();
+                    if (playPromise !== undefined) {
+                        playPromise.then(() => {
+                            musicStarted = true;
+                            consecutiveErrors = 0;
+                            if (promptBtn) promptBtn.style.display = 'none';
+                            fadeInAudio();
+                        }).catch(err => {
+                            if (err && err.name === 'NotAllowedError') {
+                                // El navegador bloqueó reproducción automática con sonido hasta el primer clic/toque
+                                if (promptBtn) promptBtn.style.display = 'flex';
+                                if (trackLabel) trackLabel.textContent = 'Listo para sonar — Toca la pantalla 🎵';
+                            } else {
+                                console.warn('Error cargando pista navideña, pasando a la siguiente:', track.title, err);
+                                handleTrackError();
+                            }
+                        });
+                    }
+                }
+
+                function nextTrack() {
+                    trackIdx++;
+                    if (trackIdx >= shuffledTracks.length) {
+                        shuffledTracks = shuffleTracks([...christmasPlaylist]);
+                        trackIdx = 0;
+                    }
+                    playCurrentTrack();
+                }
+
+                function handleTrackError() {
+                    consecutiveErrors++;
+                    const delay = consecutiveErrors >= shuffledTracks.length ? 15000 : 1000;
+                    if (consecutiveErrors >= shuffledTracks.length) consecutiveErrors = 0;
+                    setTimeout(nextTrack, delay);
+                }
+
+                bgAudio.addEventListener('ended', nextTrack);
+                bgAudio.addEventListener('error', () => {
+                    console.warn('No se pudo cargar el audio:', bgAudio.src);
+                    handleTrackError();
+                });
+
+                // Desbloquear audio al primer toque o tecla (también funciona con control remoto de TV)
+                function unlockBackgroundMusic() {
+                    if (!isMusicMuted && (!musicStarted || bgAudio.paused)) {
+                        playCurrentTrack();
+                    }
+                }
+                document.addEventListener('click', unlockBackgroundMusic);
+                document.addEventListener('keydown', unlockBackgroundMusic);
+
+                if (toggleBtn) {
+                    toggleBtn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        isMusicMuted = !isMusicMuted;
+                        bgAudio.muted = isMusicMuted;
+                        if (!isMusicMuted) {
+                            if (bgAudio.paused) playCurrentTrack();
+                            else fadeInAudio();
+                            if (toggleIcon) toggleIcon.textContent = '🔊';
+                        } else {
+                            clearInterval(fadeTimer);
+                            bgAudio.volume = 0;
+                            if (toggleIcon) toggleIcon.textContent = '🔇';
+                        }
+                    });
+                }
+
+                if (nextBtn) {
+                    nextBtn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        nextTrack();
+                    });
+                }
+
+                if (promptBtn) {
+                    promptBtn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        if (typeof enterFullScreen === 'function') enterFullScreen();
+                        playCurrentTrack();
+                    });
+                }
+
+                // Iniciar rotación musical
+                playCurrentTrack();
+
+                // --- 4. Sistema de Nieve Optimizado para TV 24/7 ---
                 const canvas = document.getElementById('tv-snow-canvas');
                 if (!canvas) return;
                 const ctx = canvas.getContext('2d');
